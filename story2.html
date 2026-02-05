@@ -1,1 +1,199 @@
-.
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Highschool - Story 1</title>
+    <style>
+        :root {
+            --primary-color: #000;
+            --error-color: #ff4d4d;
+            --bg-color: #ffffff;
+            --modal-bg: rgba(0, 0, 0, 0.7);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .image-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .interaction-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row; /* 가로 배치 */
+            justify-content: center;
+            align-items: center;
+            gap: 10px; /* 요소 사이 간격 */
+        }
+
+        .input-field {
+            flex: 1; /* 남은 공간 차지 */
+            max-width: 200px; /* 입력창 최대 너비 제한 */
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-color);
+        }
+
+        .move-button {
+            padding: 12px 25px; /* 버튼 크기 축소 */
+            font-size: 16px; /* 폰트 크기 조정 */
+            color: #fff;
+            background-color: var(--primary-color);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        .move-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-bg);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-message {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .modal-close-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* 모바일 대응: 화면이 너무 작으면 다시 세로로 배치 */
+        @media (max-width: 400px) {
+            .interaction-container {
+                flex-direction: column;
+            }
+            .input-field {
+                max-width: 100%;
+                width: 100%;
+            }
+            .move-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="image-container">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story2_1.png" alt="스토리2 이미지 1">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story2_2.png" alt="스토리2 이미지 2">
+    </div>
+
+    <div class="interaction-container">
+        <!-- 텍스트 입력창 -->
+        <input type="text" id="answerInput" class="input-field" placeholder="정답 입력" autocomplete="off">
+        
+        <!-- 이동 버튼 -->
+        <button onclick="checkAnswer()" class="move-button">
+            (으)로 이동
+        </button>
+    </div>
+
+    <!-- 커스텀 모달 팝업 -->
+    <div id="errorModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-message">다시 생각해보자</div>
+            <button class="modal-close-btn" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        const correctAnswer = "미술실";
+        const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story3.html";
+
+        function checkAnswer() {
+            const userInput = document.getElementById('answerInput').value.trim();
+            
+            if (userInput === correctAnswer) {
+                window.location.href = targetUrl;
+            } else {
+                showModal();
+            }
+        }
+
+        function showModal() {
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('errorModal').style.display = 'none';
+            const input = document.getElementById('answerInput');
+            input.value = '';
+            input.focus();
+        }
+
+        document.getElementById('answerInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+    </script>
+
+</body>
+</html>
