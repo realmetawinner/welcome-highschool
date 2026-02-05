@@ -100,11 +100,13 @@
             const input = document.getElementById('answerInput');
             // 입력값을 소문자로 변환하여 비교 (대소문자 구분 없음)
             const value = input.value.trim().toLowerCase();
+            // 목적지 URL 설정
+            const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story9.html";
             
-            // 정답을 'urtop'으로 변경
+            // 정답을 'urtop'으로 체크
             if (value === 'urtop') {
-                // 정답 시 페이지 이동
-                window.location.href = "realmetawinner/welcome-highschool/story9.html";
+                // 정답 시 지정된 URL로 이동
+                window.location.href = targetUrl;
             } else {
                 // 오답 시 모달 표시
                 showModal();
