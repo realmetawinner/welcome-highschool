@@ -1,1 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웰컴 고등학교 - 스토리 8</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc;
+        }
 
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            transform: scale(0.9);
+            transition: transform 0.2s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* 이미지 컨테이너 스타일 */
+        .image-container img {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            display: block;
+            margin: 0 auto 1rem auto;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-10 space-y-8">
+        <!-- 이미지 영역: 요청에 따라 이미지 3 삭제 -->
+        <div class="image-container">
+            <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story8_1.png" alt="스토리 이미지 1">
+            <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story8_2.png" alt="스토리 이미지 2">
+        </div>
+
+        <!-- 입력 영역: 문구 수정 -->
+        <div class="flex flex-col items-center space-y-4 pt-4 border-t border-gray-100">
+            <label for="answerInput" class="text-lg font-bold text-gray-700">PIN 암호를 입력하세요</label>
+            <div class="flex w-full max-w-sm space-x-2">
+                <input type="text" 
+                       id="answerInput" 
+                       placeholder="PIN" 
+                       class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors text-lg"
+                       onkeydown="if(event.key === 'Enter') checkAnswer()">
+                <button onclick="checkAnswer()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-200">
+                    입력
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 커스텀 모달 팝업 -->
+    <div id="modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content w-80" onclick="event.stopPropagation()">
+            <div class="text-5xl mb-4">🤔</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">다시 생각해보자!</h2>
+            <p class="text-gray-600 mb-6">입력한 PIN이 정확하지 않은 것 같아요.</p>
+            <button onclick="closeModal()" 
+                    class="w-full py-3 bg-gray-800 text-white rounded-lg font-bold hover:bg-gray-700 transition-colors">
+                다시 시도하기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function checkAnswer() {
+            const input = document.getElementById('answerInput');
+            const value = input.value.trim().toLowerCase();
+            
+            // URBEST 또는 urbest 모두 정답 처리
+            if (value === 'urbest') {
+                // 정답 시 페이지 이동
+                window.location.href = "realmetawinner/welcome-highschool/story9.html";
+            } else {
+                // 오답 시 모달 표시
+                showModal();
+            }
+        }
+
+        function showModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.add('active');
+        }
+
+        function closeModal(event) {
+            const modal = document.getElementById('modal');
+            const input = document.getElementById('answerInput');
+            
+            modal.classList.remove('active');
+            input.value = ''; // 입력창 초기화
+            input.focus();    // 다시 포커스
+        }
+    </script>
+
+</body>
+</html>
