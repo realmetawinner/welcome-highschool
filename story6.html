@@ -1,1 +1,293 @@
-story6
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y고등학교 작품전시회 - 미션</title>
+    <style>
+        :root {
+            --neon-green: #adff2f;
+            --dark-bg: #121212;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* 상단 텍스트 */
+        .header-text {
+            margin: 40px 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+
+        /* 손전등 컨테이너: 세로로 긴 비율(2:3) */
+        .flashlight-section {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 2 / 3;
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+            overflow: hidden;
+            touch-action: none;
+            cursor: none;
+            background-color: #000;
+        }
+
+        .image-content {
+            width: 100%;
+            height: 100%;
+            background-image: url('https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/Y고등학교 작품전시회.png');
+            background-size: contain; 
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.98);
+            pointer-events: none;
+            mask-image: radial-gradient(circle 80px at -200px -200px, transparent 0%, black 100%);
+            -webkit-mask-image: radial-gradient(circle 80px at -200px -200px, transparent 0%, black 100%);
+        }
+
+        /* 하단 섹션 */
+        .footer-section {
+            margin: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .footer-text {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #ccc;
+        }
+
+        /* 키패드 UI */
+        .keypad-container {
+            background-color: var(--dark-bg);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 280px;
+        }
+
+        .display {
+            background: #000;
+            border: 1px solid #333;
+            color: var(--neon-green);
+            font-size: 2rem;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 8px;
+        }
+
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .key {
+            background: transparent;
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            font-size: 1.5rem;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+        }
+
+        .key:active {
+            background: var(--neon-green);
+            color: #000;
+        }
+
+        .key.clear {
+            border-color: #ff4d4d;
+            color: #ff4d4d;
+        }
+
+        .key.submit {
+            background: var(--neon-green);
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        /* 커스텀 모달 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #222;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--neon-green);
+            max-width: 80%;
+        }
+
+        .modal-content h3 { color: var(--neon-green); margin-top: 0; }
+        .modal-btn {
+            margin-top: 20px;
+            background: var(--neon-green);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-text">
+        방금 전 만든 손전등을 이용해<br>
+        <strong>어둠 속 힌트를 찾아봐!</strong>
+    </div>
+
+    <div class="flashlight-section" id="flashlightSection">
+        <div class="image-content"></div>
+        <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="footer-section">
+        <div class="footer-text">여기에 비밀번호를 입력하면 되나봐!</div>
+
+        <div class="keypad-container">
+            <div class="display" id="passDisplay">_ _ _ _</div>
+            <div class="keys">
+                <button class="key" onclick="press('1')">1</button>
+                <button class="key" onclick="press('2')">2</button>
+                <button class="key" onclick="press('3')">3</button>
+                <button class="key" onclick="press('4')">4</button>
+                <button class="key" onclick="press('5')">5</button>
+                <button class="key" onclick="press('6')">6</button>
+                <button class="key" onclick="press('7')">7</button>
+                <button class="key" onclick="press('8')">8</button>
+                <button class="key" onclick="press('9')">9</button>
+                <button class="key clear" onclick="clearPass()">C</button>
+                <button class="key" onclick="press('0')">0</button>
+                <button class="key submit" onclick="checkPass()">입력</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <h3>비밀번호가 틀렸습니다</h3>
+            <p>다시 생각해보세요!</p>
+            <button class="modal-btn" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        const section = document.getElementById('flashlightSection');
+        const overlay = document.getElementById('overlay');
+
+        function updateMask(clientX, clientY) {
+            const rect = section.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            
+            if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                const maskStyle = `radial-gradient(circle 80px at ${x}px ${y}px, transparent 0%, black 100%)`;
+                overlay.style.webkitMaskImage = maskStyle;
+                overlay.style.maskImage = maskStyle;
+            }
+        }
+
+        section.addEventListener('mousemove', (e) => updateMask(e.clientX, e.clientY));
+        section.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            updateMask(touch.clientX, touch.clientY);
+        });
+
+        let inputPass = "";
+        const display = document.getElementById('passDisplay');
+        const CORRECT_PASS = "1225";
+        // 이동할 목적지 주소 업데이트
+        const SUCCESS_URL = "https://realmetawinner.github.io/welcome-highschool/story7.html";
+        const PLACEHOLDER = "_ _ _ _";
+
+        function updateDisplay() {
+            if (inputPass.length === 0) {
+                display.innerText = PLACEHOLDER;
+                display.style.opacity = "0.5";
+            } else {
+                display.style.opacity = "1";
+                let dots = "* ".repeat(inputPass.length).trim();
+                let remaining = "_ ".repeat(4 - inputPass.length).trim();
+                display.innerText = (dots + " " + remaining).trim();
+            }
+        }
+
+        function press(num) {
+            if (inputPass.length < 4) {
+                inputPass += num;
+                updateDisplay();
+            }
+        }
+
+        function clearPass() {
+            inputPass = "";
+            updateDisplay();
+        }
+
+        function checkPass() {
+            if (inputPass === CORRECT_PASS) {
+                window.location.href = SUCCESS_URL;
+            } else {
+                document.getElementById('modal').style.display = 'flex';
+                clearPass();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
