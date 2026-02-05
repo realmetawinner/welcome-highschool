@@ -66,7 +66,6 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.1);
       border-radius: 12px;
       overflow: hidden;
-      touch-action: none; /* 모바일에서 스크롤 방해 금지 */
     }
 
     #board {
@@ -133,7 +132,7 @@
     .game-btn {
       padding: 14px 20px;
       font-size: 18px;
-      background: #4CAF50;
+      background: #1e293b; 
       color: white;
       border: none;
       border-radius: 16px;
@@ -150,7 +149,7 @@
     .game-btn:active {
       transform: translateY(2px);
       box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-      filter: brightness(0.9);
+      filter: brightness(1.2);
     }
 
     #retry-btn {
@@ -167,6 +166,31 @@
       max-width: 280px;
     }
 
+    /* 알림 모달 스타일 */
+    #modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 320px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.03); }
@@ -177,26 +201,21 @@
 <body>
 
   <div class="game-container">
-    <!-- 1. 첫번째 이미지 -->
     <div class="image-stack">
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story7_1.png" alt="스토리 이미지 1">
-        <!-- 2. 두번째 이미지 -->
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story7_2.png" alt="스토리 이미지 2">
     </div>
 
-    <!-- 3. 색깔연결 게임 영역 -->
     <div class="text-center mb-8 px-4">
         <h1 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">회로 연결 미션</h1>
-        <p class="text-slate-500 text-sm md:text-base">단자를 겹치지 않게 드래그하거나 화살표로 연결하세요.</p>
+        <p class="text-slate-500 text-sm md:text-base">같은 색의 단자를 화살표 버튼으로 연결하세요.</p>
     </div>
 
-    <!-- 게임 보드 -->
     <div id="game">
       <canvas id="canvas"></canvas>
       <div id="board"></div>
     </div>
 
-    <!-- 조작부 -->
     <div class="controls">
       <div id="arrows">
         <button class="game-btn" style="grid-area: up;" onclick="move('up')">↑</button>
@@ -207,9 +226,17 @@
       
       <div class="flex flex-col sm:flex-row gap-3 w-full justify-center items-center">
         <button id="retry-btn" class="game-btn w-full sm:w-auto" onclick="drawBoard()">다시 도전하기</button>
-        <!-- 버튼 문구와 연결 링크 수정 -->
-        <button id="complete-button" class="game-btn" onclick="window.open('https://realmetawinner.github.io/welcome-highschool/story8.html')">💻 컴퓨터ON</button>
+        <button id="complete-button" class="game-btn" onclick="location.href='https://realmetawinner.github.io/welcome-highschool/story8.html'">💻 컴퓨터ON</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 팝업 모달 -->
+  <div id="modal-overlay">
+    <div class="modal-content">
+      <h2 class="text-xl font-bold text-slate-800 mb-3">앗! 잘못된 연결</h2>
+      <p class="text-slate-600 mb-6">다른 색끼리는 닿으면 안됩니다.</p>
+      <button onclick="closeModalAndReset()" class="game-btn w-full !bg-slate-900">다시 시작하기</button>
     </div>
   </div>
 
@@ -218,6 +245,7 @@
   const completeButton = document.getElementById('complete-button');
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
+  const modalOverlay = document.getElementById('modal-overlay');
   
   const cols = 5, rows = 7;
   let currentColorIndex = 0;
@@ -238,6 +266,7 @@
 
   function resizeCanvas() {
     const size = getCellSize();
+    if (!canvas) return;
     canvas.width = size * cols;
     canvas.height = size * rows;
     redrawCanvas();
@@ -313,9 +342,19 @@
     const color = colorOrder[currentColorIndex];
     const key = `${newX},${newY}`;
 
+    // 충돌 체크 로직
+    // 1. 이미 다른 색의 선이 있는 곳인가?
+    const hasOtherLine = cell.dataset.lineColor && cell.dataset.lineColor !== color;
+    // 2. 다른 색의 도트가 있는 곳인가?
+    const hasOtherDot = cell.dataset.isDot === "true" && cell.dataset.dotColor !== color;
+
+    if (hasOtherLine || hasOtherDot) {
+      showResetModal();
+      return;
+    }
+
+    // 자기 자신의 선으로는 되돌아가지 않음 (하지만 겹치지 않는 선에서 이동은 허용)
     if (drawnPaths[color].includes(key)) return; 
-    if (cell.dataset.lineColor && cell.dataset.lineColor !== color) return;
-    if (cell.dataset.isDot === "true" && cell.dataset.dotColor !== color) return;
 
     cell.dataset.lineColor = color;
     drawnPaths[color].push(key);
@@ -333,6 +372,15 @@
         checkCompletion();
       }
     }
+  }
+
+  function showResetModal() {
+    modalOverlay.style.display = 'flex';
+  }
+
+  function closeModalAndReset() {
+    modalOverlay.style.display = 'none';
+    drawBoard();
   }
 
   function checkCompletion() {
@@ -378,7 +426,6 @@
     }
   }
 
-  // 화면 크기 변경 시 대응
   window.addEventListener('resize', () => {
     const oldSize = canvas.width / cols;
     const newSize = getCellSize();
