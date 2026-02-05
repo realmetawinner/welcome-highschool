@@ -5,42 +5,146 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome Highschool</title>
     <style>
+        :root {
+            --primary-color: #000;
+            --bg-color: #ffffff;
+            --modal-bg: rgba(0, 0, 0, 0.5);
+        }
+
         body {
             margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #ffffff;
+            background-color: var(--bg-color);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            overflow-x: hidden;
         }
+
+        /* 이미지 컨테이너 */
         .image-container {
             width: 100%;
-            max-width: 800px; /* 화면 너비에 맞춰 조절 가능 */
+            max-width: 800px;
             display: flex;
             flex-direction: column;
         }
+
         img {
             width: 100%;
             height: auto;
-            display: block; /* 이미지 사이 미세한 간격 제거 */
+            display: block;
         }
-        .btn-wrapper {
-            padding: 40px 0;
+
+        /* 암호 입력 섹션 */
+        .password-section {
+            padding: 60px 20px;
             text-align: center;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
         }
+
+        .password-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .password-input {
+            border: none;
+            border-bottom: 3px solid #000;
+            padding: 5px 10px;
+            font-size: 22px;
+            text-align: center;
+            width: 200px;
+            outline: none;
+            transition: border-color 0.3s;
+            background: transparent;
+        }
+
+        .password-input:focus {
+            border-bottom-color: #666;
+        }
+
         .move-button {
             display: inline-block;
-            padding: 15px 50px;
+            padding: 12px 40px;
             font-size: 20px;
             color: #fff;
-            background-color: #000; /* 버튼 색상 */
+            background-color: var(--primary-color);
             text-decoration: none;
-            border-radius: 30px;
+            border-radius: 50px;
             font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-bg);
+            display: none; /* 기본적으로 숨김 */
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 90%;
+            width: 320px;
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-text {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .modal-close-btn {
+            background-color: #000;
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        @media (max-width: 480px) {
+            .password-wrapper { font-size: 20px; }
+            .password-input { width: 160px; font-size: 18px; }
+            .move-button { padding: 10px 30px; font-size: 18px; }
         }
     </style>
 </head>
 <body>
 
+    <!-- 이미지 영역 -->
     <div class="image-container">
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/main_1.png" alt="메인 이미지 1">
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/main_2.png" alt="메인 이미지 2">
@@ -50,11 +154,64 @@
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/main_6.png" alt="메인 이미지 6">
     </div>
 
-    <div class="btn-wrapper">
-        <a href="https://realmetawinner.github.io/welcome-highschool/story1.html" class="move-button">
-            00으로 이동
-        </a>
+    <!-- 암호 입력 영역 -->
+    <div class="password-section">
+        <div class="password-wrapper">
+            <span>암호는</span>
+            <input type="text" id="pw-input" class="password-input" placeholder="암호 입력" autocomplete="off">
+            <button type="button" onclick="validatePassword()" class="move-button">입니다</button>
+        </div>
     </div>
+
+    <!-- 틀렸을 때 나타나는 팝업 모달 -->
+    <div id="error-modal" class="modal-overlay">
+        <div class="modal-content">
+            <p class="modal-text">다시 생각해볼까?</p>
+            <button type="button" class="modal-close-btn" onclick="closeModal()">다시 입력하기</button>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('error-modal');
+        const inputField = document.getElementById('pw-input');
+
+        function openModal() {
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            inputField.value = ""; // 입력창 초기화
+            inputField.focus();    // 다시 포커스
+        }
+
+        function validatePassword() {
+            const userInput = inputField.value.trim();
+            const correctKey = "당신은특별해";
+            const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story1.html";
+
+            if (userInput === correctKey) {
+                window.location.href = targetUrl;
+            } else {
+                // 암호가 틀렸거나 비어있을 때 모달 표시
+                openModal();
+            }
+        }
+
+        // 엔터키 지원
+        inputField.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                validatePassword();
+            }
+        });
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
 
 </body>
 </html>
