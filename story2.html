@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Highschool - Story 1</title>
+    <title>5초 타이머 챌린지</title>
     <style>
         :root {
             --primary-color: #000;
-            --error-color: #ff4d4d;
             --bg-color: #ffffff;
-            --modal-bg: rgba(0, 0, 0, 0.7);
+            --led-off: #222;
+            --led-on: #ff0000;
         }
 
         body {
@@ -20,8 +20,12 @@
             align-items: center;
             background-color: var(--bg-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
+        /* 이미지 컨테이너: 세로 배치 */
         .image-container {
             width: 100%;
             max-width: 800px;
@@ -35,50 +39,75 @@
             display: block;
         }
 
-        .interaction-container {
-            width: 100%;
-            max-width: 800px;
-            padding: 40px 20px;
-            box-sizing: border-box;
+        /* 게임 영역 */
+        .game-container {
             display: flex;
-            flex-direction: row; /* 가로 배치 */
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            gap: 40px;
+        }
+
+        /* 매트릭스 전광판 (8x8) */
+        .matrix-display {
+            background: #000;
+            padding: 15px;
+            border-radius: 15px;
+            display: grid;
+            grid-template-columns: repeat(8, 18px);
+            grid-template-rows: repeat(8, 18px);
+            gap: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .dot {
+            width: 18px;
+            height: 18px;
+            background: var(--led-off);
+            border-radius: 50%;
+            transition: background 0.1s, box-shadow 0.1s;
+        }
+
+        .dot.active {
+            background: var(--led-on);
+            box-shadow: 0 0 10px var(--led-on), 0 0 15px var(--led-on);
+        }
+
+        /* 3D 검정 버튼 스타일 */
+        .push-button-wrapper {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px; /* 요소 사이 간격 */
+            background: #e0e0e0;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .input-field {
-            flex: 1; /* 남은 공간 차지 */
-            max-width: 200px; /* 입력창 최대 너비 제한 */
-            padding: 12px 15px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .input-field:focus {
-            border-color: var(--primary-color);
-        }
-
-        .move-button {
-            padding: 12px 25px; /* 버튼 크기 축소 */
-            font-size: 16px; /* 폰트 크기 조정 */
-            color: #fff;
-            background-color: var(--primary-color);
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: bold;
+        .push-button {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #4a4a4a, #000);
             border: none;
             cursor: pointer;
-            white-space: nowrap; /* 텍스트 줄바꿈 방지 */
-            transition: transform 0.2s, background-color 0.3s;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.4);
+            transition: transform 0.05s, box-shadow 0.05s;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .move-button:active {
-            transform: scale(0.95);
+        .push-button:active {
+            transform: scale(0.94) translateY(4px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
         /* 모달 스타일 */
@@ -88,7 +117,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--modal-bg);
+            background-color: rgba(0, 0, 0, 0.7);
             display: none;
             justify-content: center;
             align-items: center;
@@ -114,27 +143,14 @@
         }
 
         .modal-close-btn {
-            background-color: var(--primary-color);
+            background-color: #000;
             color: #fff;
             border: none;
-            padding: 10px 30px;
+            padding: 12px 30px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-        }
-
-        /* 모바일 대응: 화면이 너무 작으면 다시 세로로 배치 */
-        @media (max-width: 400px) {
-            .interaction-container {
-                flex-direction: column;
-            }
-            .input-field {
-                max-width: 100%;
-                width: 100%;
-            }
-            .move-button {
-                width: 100%;
-            }
+            font-size: 16px;
         }
     </style>
 </head>
@@ -145,55 +161,208 @@
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story2_2.png" alt="스토리2 이미지 2">
     </div>
 
-    <div class="interaction-container">
-        <!-- 텍스트 입력창 -->
-        <input type="text" id="answerInput" class="input-field" placeholder="정답 입력" autocomplete="off">
-        
-        <!-- 이동 버튼 -->
-        <button onclick="checkAnswer()" class="move-button">
-            (으)로 이동
-        </button>
+    <div class="game-container">
+        <!-- 매트릭스 전광판 -->
+        <div class="matrix-display" id="matrix">
+            <!-- JS에서 8x8 도트 생성 -->
+        </div>
+
+        <!-- 3D 버튼 -->
+        <div class="push-button-wrapper">
+            <button class="push-button" id="mainBtn">버튼</button>
+        </div>
     </div>
 
-    <!-- 커스텀 모달 팝업 -->
-    <div id="errorModal" class="modal-overlay">
+    <!-- 실패 모달 -->
+    <div id="modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-message">다시 생각해보자</div>
-            <button class="modal-close-btn" onclick="closeModal()">확인</button>
+            <div class="modal-message">다시도전해보세요</div>
+            <button onclick="closeModal()" class="modal-close-btn">닫기</button>
         </div>
     </div>
 
     <script>
-        const correctAnswer = "미술실";
+        const matrixContainer = document.getElementById('matrix');
+        const mainBtn = document.getElementById('mainBtn');
+        const modal = document.getElementById('modal');
         const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story3.html";
 
-        function checkAnswer() {
-            const userInput = document.getElementById('answerInput').value.trim();
-            
-            if (userInput === correctAnswer) {
+        // 숫자별 매트릭스 패턴 (8x8)
+        const digits = {
+            0: [
+                0,0,1,1,1,1,0,0,
+                0,1,1,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,0,1,1,1,1,0,0
+            ],
+            1: [
+                0,0,0,1,1,0,0,0,
+                0,0,1,1,1,0,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,1,1,1,1,0,0
+            ],
+            2: [
+                0,1,1,1,1,1,0,0,
+                1,1,0,0,0,1,1,0,
+                0,0,0,0,0,1,1,0,
+                0,0,0,1,1,1,0,0,
+                0,0,1,1,1,0,0,0,
+                0,1,1,0,0,0,0,0,
+                1,1,0,0,0,0,0,0,
+                1,1,1,1,1,1,1,0
+            ],
+            3: [
+                0,1,1,1,1,1,0,0,
+                1,1,0,0,0,1,1,0,
+                0,0,0,0,0,1,1,0,
+                0,0,1,1,1,1,0,0,
+                0,0,0,0,0,1,1,0,
+                0,0,0,0,0,1,1,0,
+                1,1,0,0,0,1,1,0,
+                0,1,1,1,1,1,0,0
+            ],
+            4: [
+                0,0,0,0,1,1,0,0,
+                0,0,0,1,1,1,0,0,
+                0,0,1,0,1,1,0,0,
+                0,1,0,0,1,1,0,0,
+                1,1,1,1,1,1,1,0,
+                0,0,0,0,1,1,0,0,
+                0,0,0,0,1,1,0,0,
+                0,0,0,0,1,1,0,0
+            ],
+            5: [
+                1,1,1,1,1,1,1,0,
+                1,1,0,0,0,0,0,0,
+                1,1,1,1,1,1,0,0,
+                0,0,0,0,0,1,1,0,
+                0,0,0,0,0,1,1,0,
+                0,0,0,0,0,1,1,0,
+                1,1,0,0,0,1,1,0,
+                0,1,1,1,1,1,0,0
+            ],
+            6: [
+                0,0,1,1,1,1,0,0,
+                0,1,1,0,0,0,0,0,
+                0,1,1,0,0,0,0,0,
+                0,1,1,1,1,1,0,0,
+                0,1,1,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,0,1,1,1,1,0,0
+            ],
+            7: [
+                1,1,1,1,1,1,1,0,
+                1,1,0,0,0,1,1,0,
+                0,0,0,0,1,1,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,1,1,0,0,0,0,
+                0,0,1,1,0,0,0,0,
+                0,0,1,1,0,0,0,0,
+                0,0,1,1,0,0,0,0
+            ],
+            8: [
+                0,1,1,1,1,1,0,0,
+                1,1,0,0,0,1,1,0,
+                1,1,0,0,0,1,1,0,
+                0,1,1,1,1,1,0,0,
+                1,1,0,0,0,1,1,0,
+                1,1,0,0,0,1,1,0,
+                1,1,0,0,0,1,1,0,
+                0,1,1,1,1,1,0,0
+            ],
+            9: [
+                0,1,1,1,1,1,0,0,
+                1,1,0,0,0,1,1,0,
+                1,1,0,0,0,1,1,0,
+                0,1,1,1,1,1,1,0,
+                0,0,0,0,0,1,1,0,
+                0,0,0,0,0,1,1,0,
+                0,1,1,0,0,1,1,0,
+                0,0,1,1,1,1,0,0
+            ]
+        };
+
+        // 매트릭스 도트 64개 생성
+        for (let i = 0; i < 64; i++) {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            matrixContainer.appendChild(dot);
+        }
+
+        function drawDigit(num) {
+            const dots = document.querySelectorAll('.dot');
+            const pattern = digits[num % 10];
+            dots.forEach((dot, index) => {
+                if (pattern[index] === 1) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // 초기 화면 0 표시
+        drawDigit(0);
+
+        let timer = null;
+        let count = 0;
+
+        function startCounting() {
+            if (timer) return;
+            count = 0;
+            drawDigit(0);
+            timer = setInterval(() => {
+                count++;
+                drawDigit(count);
+            }, 1000);
+        }
+
+        function stopCounting() {
+            if (!timer) return;
+            clearInterval(timer);
+            const finalCount = count;
+            timer = null;
+
+            if (finalCount === 5) {
                 window.location.href = targetUrl;
             } else {
                 showModal();
+                drawDigit(0);
             }
         }
 
         function showModal() {
-            document.getElementById('errorModal').style.display = 'flex';
+            modal.style.display = 'flex';
         }
 
         function closeModal() {
-            document.getElementById('errorModal').style.display = 'none';
-            const input = document.getElementById('answerInput');
-            input.value = '';
-            input.focus();
+            modal.style.display = 'none';
         }
 
-        document.getElementById('answerInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                checkAnswer();
-            }
-        });
-    </script>
+        // 마우스 이벤트
+        mainBtn.addEventListener('mousedown', startCounting);
+        mainBtn.addEventListener('mouseup', stopCounting);
+        mainBtn.addEventListener('mouseleave', stopCounting);
 
+        // 터치 이벤트
+        mainBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startCounting();
+        });
+        mainBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopCounting();
+        });
+
+    </script>
 </body>
 </html>
