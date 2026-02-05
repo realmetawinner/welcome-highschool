@@ -1,1 +1,288 @@
-story5
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아이템 제작하기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Serif KR', serif;
+            background-color: #fdfbf7; /* 도서관 베이지 배경 */
+        }
+
+        .item-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border-color: #e5e1da;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            background-color: #f8f5f0;
+            border-color: #c5bba8;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 조립 작업대 2x2 그리드 강제 고정 */
+        #drop-zone {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-rows: repeat(2, 1fr) !important;
+            gap: 16px;
+            width: 100%;
+            max-width: 300px;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+            border: 2px solid #d4cfc3;
+            padding: 16px;
+            background-color: #fffaf0;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .slot-box {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border: 1px solid #ece8e1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 34, 25, 0.4);
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            backdrop-filter: blur(2px);
+        }
+
+        .story-bg-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fdfbf7;
+        }
+
+        .story-bg-container img {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            display: block;
+        }
+
+        .item-media {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+
+        .item-icon {
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+
+        /* 버튼 디자인 (도서관 테마) */
+        .btn-primary {
+            background-color: #5c4033; /* 딥 브라운 */
+            color: #fdfbf7;
+        }
+        .btn-primary:hover {
+            background-color: #4a3329;
+        }
+        .btn-secondary {
+            background-color: #e5e1da;
+            color: #5c4033;
+        }
+        .btn-secondary:hover {
+            background-color: #d8d3c9;
+        }
+    </style>
+</head>
+<body class="pb-12">
+
+    <!-- Story Images as Background -->
+    <div class="story-bg-container">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story5_1.png" alt="스토리 배경 1">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story5_2.png" alt="스토리 배경 2">
+    </div>
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm overflow-hidden mt-6 border border-[#e5e1da]">
+        <!-- Header: Re-designed as per image_cd2fc7.png -->
+        <div class="p-8 text-center border-b border-[#f3f0ea]">
+            <h1 class="text-2xl md:text-3xl font-bold mb-3 text-[#5c4033] flex items-center justify-center gap-2">
+                ⚒️ 아이템 제작하기 ⚒️
+            </h1>
+            <p class="text-[#8a7e72] font-medium">필요한 재료 4개를 클릭해 아이템을 제작하세요</p>
+        </div>
+
+        <div class="p-6 md:p-10 flex flex-col md:flex-row gap-12 bg-[#faf9f6]">
+            <!-- Left: 3x3 Tool Box -->
+            <div class="w-full md:w-1/2">
+                <h2 class="text-sm font-bold mb-5 text-[#8a7e72] uppercase tracking-wider">부품 보관함</h2>
+                <div id="item-grid" class="grid grid-cols-3 gap-3">
+                    <!-- Items will be injected by JS -->
+                </div>
+            </div>
+
+            <!-- Right: Workbench (Strict 2x2 Grid) -->
+            <div class="w-full md:w-1/2 flex flex-col items-center">
+                <h2 class="text-sm font-bold mb-5 text-[#8a7e72] uppercase tracking-wider w-full text-left">조립 작업대 (2x2)</h2>
+                <div id="drop-zone">
+                    <!-- 4 Slots (2x2) -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-10 flex gap-4 w-full max-w-[300px]">
+                    <button onclick="checkAssembly()" class="flex-[2] btn-primary font-bold py-4 px-6 rounded-lg shadow-sm transition-all active:scale-95">
+                        아이템 제작
+                    </button>
+                    <button onclick="resetAssembly()" class="flex-1 btn-secondary font-bold py-4 px-4 rounded-lg transition-all active:scale-95">
+                        초기화
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fail Modal -->
+    <div id="fail-modal" class="modal">
+        <div class="bg-white p-10 rounded-xl shadow-2xl text-center max-w-sm mx-4 border border-[#e5e1da]">
+            <div class="text-[#c14a4a] text-5xl mb-5">📜</div>
+            <h2 class="text-xl font-bold mb-3 text-[#5c4033]">다시 시도해 보세요!</h2>
+            <p class="text-[#8a7e72] mb-8 text-sm leading-relaxed">올바른 부품 조합이 아닙니다.<br>재료를 다시 한번 확인해 주세요.</p>
+            <button onclick="closeModal()" class="w-full btn-primary py-4 rounded-lg font-bold shadow-sm transition-all active:scale-95">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const items = [
+            { id: 'battery', name: '건전지', icon: '🔋' },
+            { id: 'pencil', name: '연필', icon: '✏️' },
+            { id: 'eraser', name: '지우개', icon: '🧼' },
+            { id: 'bulb', name: '전구', icon: '💡' },
+            { id: 'wire', name: '전선', icon: '〰️' },
+            { id: 'scissors', name: '가위', icon: '✂️' },
+            // 절연 테이프: 스카치 테이프와 유사한 이모지 🩹 (Adhesive Bandage/Tape 느낌) 사용
+            { id: 'tape', name: '절연 테이프', icon: '🩹' }, 
+            { id: 'glasses', name: '안경', icon: '👓' },
+            { id: 'socks', name: '양말', icon: '🧦' }
+        ];
+
+        const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story6.html";
+        const successItems = ['battery', 'bulb', 'wire', 'tape'];
+        let selectedItems = [];
+
+        function initGrid() {
+            const grid = document.getElementById('item-grid');
+            grid.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item-card bg-white border rounded-lg p-3 flex flex-col items-center justify-center text-center select-none h-24 md:h-28';
+                
+                div.innerHTML = `
+                    <div class="item-media">
+                        <span class="item-icon">${item.icon}</span>
+                    </div>
+                    <div class="text-[11px] font-bold text-[#6d645a] mt-1">${item.name}</div>
+                `;
+                
+                div.onclick = () => addItemToWorkbench(item.id);
+                grid.appendChild(div);
+            });
+            updateWorkbenchUI();
+        }
+
+        function addItemToWorkbench(itemId) {
+            if (selectedItems.includes(itemId)) return;
+            if (selectedItems.length >= 4) return;
+            
+            selectedItems.push(itemId);
+            updateWorkbenchUI();
+        }
+
+        function updateWorkbenchUI() {
+            const dropZone = document.getElementById('drop-zone');
+            dropZone.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot-box';
+                
+                if (selectedItems[i]) {
+                    const id = selectedItems[i];
+                    const item = items.find(it => it.id === id);
+                    slot.innerHTML = `
+                        <button onclick="removeItem('${id}')" class="absolute top-1 right-1 bg-[#c14a4a] text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow hover:bg-red-700 z-10 transition-colors">✕</button>
+                        <div class="item-media">
+                            <span class="item-icon scale-110">${item.icon}</span>
+                        </div>
+                        <div class="text-[11px] font-bold text-[#5c4033]">${item.name}</div>
+                    `;
+                } else {
+                    slot.innerHTML = `<div class="text-[#d8d3c9] text-[9px] font-bold tracking-widest uppercase">Slot ${i+1}</div>`;
+                }
+                dropZone.appendChild(slot);
+            }
+        }
+
+        function removeItem(id) {
+            selectedItems = selectedItems.filter(item => item !== id);
+            updateWorkbenchUI();
+        }
+
+        function checkAssembly() {
+            if (selectedItems.length < 4) {
+                // 재료가 부족할 때도 실패 팝업
+                document.getElementById('fail-modal').style.display = 'flex';
+                return;
+            }
+
+            const sortedSuccess = [...successItems].sort();
+            const sortedCurrent = [...selectedItems].sort();
+
+            const isSuccess = sortedSuccess.length === sortedCurrent.length && 
+                              sortedSuccess.every((val, index) => val === sortedCurrent[index]);
+
+            if (isSuccess) {
+                window.location.href = targetUrl;
+            } else {
+                document.getElementById('fail-modal').style.display = 'flex';
+            }
+        }
+
+        function resetAssembly() {
+            selectedItems = [];
+            updateWorkbenchUI();
+        }
+
+        function closeModal() {
+            document.getElementById('fail-modal').style.display = 'none';
+            resetAssembly();
+        }
+
+        window.onload = initGrid;
+    </script>
+</body>
+</html>
