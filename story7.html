@@ -1,315 +1,393 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>컬러 커넥트: 회로 연결 미션</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            touch-action: none; /* 스크롤 방지 */
-            background-color: #f8fafc;
-            -webkit-user-select: none;
-            user-select: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px 10px;
-        }
-        
-        /* 이미지 컨테이너 스타일 */
-        .image-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .image-container img {
-            width: 100%;
-            height: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Connect - 회로 연결 미션</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      /* 기본 셀 크기 - 모바일 대응을 위해 변수로 관리 */
+      --cell-size: 60px;
+      --red: #F44336;
+      --yellow: #FBC02D;
+      --blue: #2196F3;
+      --purple: #9C27B0;
+    }
 
-        .cell {
-            position: relative;
-            aspect-ratio: 1 / 1;
-            border: none;
-            background: white;
-            z-index: 10;
-        }
-        .dot {
-            width: 60%;
-            height: 60%;
-            border-radius: 50%;
-            z-index: 20;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        #game-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 15;
-        }
-        .success-btn {
-            animation: bounce 1s infinite;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-    </style>
+    /* 화면이 매우 작은 경우 셀 크기 축소 */
+    @media (max-width: 360px) {
+      :root {
+        --cell-size: 50px;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+      font-family: 'Pretendard', 'Arial', sans-serif;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 15px;
+      min-height: 100vh;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* 이미지 순차 배치 스타일 (세로 적층) */
+    .image-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      margin-bottom: 25px;
+    }
+    
+    .image-stack img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      object-fit: cover;
+    }
+
+    /* 게임 보드 스타일 */
+    #game {
+      position: relative;
+      width: calc(var(--cell-size) * 5);
+      height: calc(var(--cell-size) * 7);
+      background: white;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      touch-action: none; /* 모바일에서 스크롤 방해 금지 */
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(5, var(--cell-size));
+      grid-template-rows: repeat(7, var(--cell-size));
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+    }
+
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      border: none;
+    }
+
+    .dot {
+      width: calc(var(--cell-size) * 0.5);
+      height: calc(var(--cell-size) * 0.5);
+      border-radius: 50%;
+      z-index: 3;
+    }
+
+    .red { background: var(--red); }
+    .yellow { background: var(--yellow); }
+    .blue { background: var(--blue); }
+    .purple { background: var(--purple); }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* 조작 버튼 스타일 */
+    #arrows {
+      display: grid;
+      grid-template-areas:
+        ". up ."
+        "left down right";
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+      margin-top: 30px;
+      width: 100%;
+    }
+
+    .game-btn {
+      padding: 14px 20px;
+      font-size: 18px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .game-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+      filter: brightness(0.9);
+    }
+
+    #retry-btn {
+      background: #64748b;
+    }
+
+    #complete-button {
+      background: #fbbf24;
+      color: #1e293b;
+      font-weight: 800;
+      display: none;
+      animation: pulse 1.5s infinite;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- 상단 스토리 이미지 영역 -->
-    <div class="image-container">
-        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story7_1.png" alt="이미지 1">
-        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story7_2.png" alt="이미지 2">
+  <div class="game-container">
+    <!-- 1. 첫번째 이미지 -->
+    <div class="image-stack">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story7_1.png" alt="스토리 이미지 1">
+        <!-- 2. 두번째 이미지 -->
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story7_2.png" alt="스토리 이미지 2">
     </div>
 
-    <!-- 게임 제목 및 설명 -->
-    <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold text-slate-800 mb-2">회로 연결 미션</h1>
-        <p class="text-slate-500">같은 색의 단자를 서로 겹치지 않게 연결하세요.</p>
+    <!-- 3. 색깔연결 게임 영역 -->
+    <div class="text-center mb-8 px-4">
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">회로 연결 미션</h1>
+        <p class="text-slate-500 text-sm md:text-base">단자를 겹치지 않게 드래그하거나 화살표로 연결하세요.</p>
     </div>
 
-    <!-- 게임판 -->
-    <div class="relative bg-white p-2 rounded-xl shadow-2xl border-4 border-slate-200" id="board-container">
-        <canvas id="game-canvas"></canvas>
-        <div id="grid" class="grid grid-cols-5 grid-rows-7 gap-0" style="width: 300px; height: 420px;">
-            <!-- Cells will be generated here -->
-        </div>
+    <!-- 게임 보드 -->
+    <div id="game">
+      <canvas id="canvas"></canvas>
+      <div id="board"></div>
     </div>
 
-    <!-- 컨트롤 버튼 영역 -->
-    <div class="flex flex-col items-center gap-4 mt-8">
-        <div class="flex gap-4">
-            <button onclick="resetGame()" class="flex items-center justify-center w-12 h-12 bg-white border-2 border-slate-200 rounded-full hover:bg-slate-50 transition-colors shadow-sm">
-                <span class="text-xl">🔄</span>
-            </button>
-        </div>
-        
-        <button id="complete-button" 
-                onclick="goToNextPage()"
-                class="hidden success-btn px-8 py-3 bg-green-500 text-white font-bold rounded-xl shadow-lg hover:bg-green-600 transition-all">
-            회로 연결 완료! 잠시 후 이동합니다...
-        </button>
+    <!-- 조작부 -->
+    <div class="controls">
+      <div id="arrows">
+        <button class="game-btn" style="grid-area: up;" onclick="move('up')">↑</button>
+        <button class="game-btn" style="grid-area: left;" onclick="move('left')">←</button>
+        <button class="game-btn" style="grid-area: down;" onclick="move('down')">↓</button>
+        <button class="game-btn" style="grid-area: right;" onclick="move('right')">→</button>
+      </div>
+      
+      <div class="flex flex-col sm:flex-row gap-3 w-full justify-center items-center">
+        <button id="retry-btn" class="game-btn w-full sm:w-auto" onclick="drawBoard()">다시 도전하기</button>
+        <!-- 버튼 문구와 연결 링크 수정 -->
+        <button id="complete-button" class="game-btn" onclick="window.open('https://realmetawinner.github.io/welcome-highschool/story8.html')">💻 컴퓨터ON</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const gridElement = document.getElementById('grid');
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        const completeButton = document.getElementById('complete-button');
-        const container = document.getElementById('board-container');
+<script>
+  const board = document.getElementById('board');
+  const completeButton = document.getElementById('complete-button');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  const cols = 5, rows = 7;
+  let currentColorIndex = 0;
+  let currentPos = null;
+  const colorOrder = ['yellow', 'red', 'blue', 'purple'];
+  let drawnPaths = {};
 
-        const COLS = 5;
-        const ROWS = 7;
-        const CELL_SIZE = 60;
-        const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story8.html";
+  const level = [
+    [0, 0, 'red'], [1, 3, 'red'],
+    [0, 1, 'yellow'], [2, 0, 'yellow'],
+    [0, 5, 'blue'], [4, 1, 'blue'],
+    [1, 5, 'purple'], [4, 0, 'purple']
+  ];
 
-        const COLORS = {
-            red: '#EF4444',
-            green: '#22C55E',
-            blue: '#3B82F6',
-            purple: '#A855F7'
-        };
+  function getCellSize() {
+    return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-size'));
+  }
 
-        const DOTS = [
-            {x: 0, y: 0, color: 'red'}, {x: 1, y: 3, color: 'red'},
-            {x: 0, y: 1, color: 'green'}, {x: 2, y: 0, color: 'green'},
-            {x: 0, y: 5, color: 'blue'}, {x: 4, y: 1, color: 'blue'},
-            {x: 1, y: 5, color: 'purple'}, {x: 4, y: 0, color: 'purple'}
-        ];
+  function resizeCanvas() {
+    const size = getCellSize();
+    canvas.width = size * cols;
+    canvas.height = size * rows;
+    redrawCanvas();
+  }
 
-        let paths = { red: [], green: [], blue: [], purple: [] };
-        let isDrawing = false;
-        let currentColor = null;
-        let lastCell = null;
+  function drawBoard() {
+    const size = getCellSize();
+    canvas.width = size * cols;
+    canvas.height = size * rows;
+    
+    completeButton.style.display = 'none';
+    board.innerHTML = '';
+    
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        board.appendChild(cell);
+      }
+    }
 
-        function initGrid() {
-            gridElement.innerHTML = '';
-            for (let y = 0; y < ROWS; y++) {
-                for (let x = 0; x < COLS; x++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell flex items-center justify-center';
-                    cell.dataset.x = x;
-                    cell.dataset.y = y;
-                    
-                    const dotData = DOTS.find(d => d.x === x && d.y === y);
-                    if (dotData) {
-                        const dot = document.createElement('div');
-                        dot.className = 'dot';
-                        dot.style.backgroundColor = COLORS[dotData.color];
-                        cell.appendChild(dot);
-                        cell.dataset.color = dotData.color;
-                    }
-                    
-                    gridElement.appendChild(cell);
-                }
-            }
-            resizeCanvas();
-        }
+    level.forEach(([x, y, color]) => {
+      const cell = getCell(x, y);
+      const dot = document.createElement('div');
+      dot.className = `dot ${color}`;
+      cell.appendChild(dot);
+      cell.dataset.isDot = "true";
+      cell.dataset.dotColor = color;
+    });
 
-        function resizeCanvas() {
-            canvas.width = 300;
-            canvas.height = 420;
-            drawAllPaths();
-        }
+    currentColorIndex = 0;
+    drawnPaths = {};
+    startColor(colorOrder[currentColorIndex]);
+  }
 
-        function getCell(x, y) {
-            const rect = gridElement.getBoundingClientRect();
-            const cellX = Math.floor((x - rect.left) / CELL_SIZE);
-            const cellY = Math.floor((y - rect.top) / CELL_SIZE);
-            if (cellX >= 0 && cellX < COLS && cellY >= 0 && cellY < ROWS) {
-                return { x: cellX, y: cellY };
-            }
-            return null;
-        }
+  function getCell(x, y) {
+    return board.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+  }
 
-        function handleStart(e) {
-            const pos = e.touches ? e.touches[0] : e;
-            const cellPos = getCell(pos.clientX, pos.clientY);
-            if (!cellPos) return;
+  function startColor(color) {
+    const startPoint = level.find(([x, y, c]) => c === color);
+    if (!startPoint) return;
+    
+    const [startX, startY] = startPoint;
+    currentPos = { x: startX, y: startY };
+    
+    const cell = getCell(startX, startY);
+    cell.dataset.lineColor = color;
+    
+    cell.style.backgroundColor = {
+      red: 'rgba(244,67,54,0.08)',
+      yellow: 'rgba(255,235,59,0.08)',
+      blue: 'rgba(33,150,243,0.08)',
+      purple: 'rgba(156,39,176,0.08)'
+    }[color];
+    
+    drawnPaths[color] = [`${startX},${startY}`];
+    redrawCanvas();
+  }
 
-            const cell = document.querySelector(`.cell[data-x="${cellPos.x}"][data-y="${cellPos.y}"]`);
-            const color = cell.dataset.color;
+  function move(direction) {
+    if (!currentPos) return;
+    
+    const delta = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] }[direction];
+    const newX = currentPos.x + delta[0];
+    const newY = currentPos.y + delta[1];
+    
+    if (newX < 0 || newX >= cols || newY < 0 || newY >= rows) return;
 
-            if (color) {
-                isDrawing = true;
-                currentColor = color;
-                paths[color] = [{x: cellPos.x, y: cellPos.y}];
-                lastCell = cellPos;
-                drawAllPaths();
-            }
-        }
+    const cell = getCell(newX, newY);
+    const color = colorOrder[currentColorIndex];
+    const key = `${newX},${newY}`;
 
-        function handleMove(e) {
-            if (!isDrawing) return;
-            if (e.touches) e.preventDefault();
+    if (drawnPaths[color].includes(key)) return; 
+    if (cell.dataset.lineColor && cell.dataset.lineColor !== color) return;
+    if (cell.dataset.isDot === "true" && cell.dataset.dotColor !== color) return;
 
-            const pos = e.touches ? e.touches[0] : e;
-            const cellPos = getCell(pos.clientX, pos.clientY);
-            if (!cellPos) return;
+    cell.dataset.lineColor = color;
+    drawnPaths[color].push(key);
+    redrawCanvas();
+    currentPos = { x: newX, y: newY };
 
-            if (lastCell && (lastCell.x !== cellPos.x || lastCell.y !== cellPos.y)) {
-                const dx = Math.abs(cellPos.x - lastCell.x);
-                const dy = Math.abs(cellPos.y - lastCell.y);
-                
-                if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
-                    const isOtherColorPoint = DOTS.find(d => d.x === cellPos.x && d.y === cellPos.y && d.color !== currentColor);
-                    if (isOtherColorPoint) return;
+    const sameColorPoints = level.filter(([x, y, c]) => c === color);
+    const endPoint = sameColorPoints[1]; 
+    
+    if (newX === endPoint[0] && newY === endPoint[1]) {
+      currentColorIndex++;
+      if (currentColorIndex < colorOrder.length) {
+        startColor(colorOrder[currentColorIndex]);
+      } else {
+        checkCompletion();
+      }
+    }
+  }
 
-                    const existingIndex = paths[currentColor].findIndex(p => p.x === cellPos.x && p.y === cellPos.y);
-                    if (existingIndex !== -1) {
-                        paths[currentColor] = paths[currentColor].slice(0, existingIndex + 1);
-                    } else {
-                        let overlapped = false;
-                        Object.keys(paths).forEach(c => {
-                            if (c !== currentColor && paths[c].some(p => p.x === cellPos.x && p.y === cellPos.y)) {
-                                overlapped = true;
-                            }
-                        });
-                        if (overlapped) return;
+  function checkCompletion() {
+    let allFinished = true;
+    for (const color of colorOrder) {
+      if (!drawnPaths[color] || drawnPaths[color].length < 2) {
+        allFinished = false;
+        break;
+      }
+    }
+    
+    if (allFinished) {
+      completeButton.style.display = 'flex';
+    }
+  }
 
-                        paths[currentColor].push({x: cellPos.x, y: cellPos.y});
-                        
-                        const isTargetDot = DOTS.find(d => d.x === cellPos.x && d.y === cellPos.y && d.color === currentColor);
-                        if (isTargetDot && paths[currentColor].length > 1) {
-                            isDrawing = false;
-                        }
-                    }
-                    lastCell = cellPos;
-                    drawAllPaths();
-                }
-            }
-        }
+  function drawPath(color, path) {
+    if (!path || path.length < 1) return;
+    const size = getCellSize();
+    
+    ctx.beginPath();
+    ctx.strokeStyle = {
+      red: '#F44336', yellow: '#FBC02D', blue: '#2196F3', purple: '#9C27B0'
+    }[color];
+    ctx.lineWidth = size * 0.22;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    for (let i = 0; i < path.length; i++) {
+      const [x, y] = path[i].split(',').map(Number);
+      const cx = x * size + size / 2;
+      const cy = y * size + size / 2;
+      if (i === 0) ctx.moveTo(cx, cy);
+      else ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+  }
 
-        function handleEnd() {
-            if (!isDrawing) return;
-            isDrawing = false;
-            
-            const last = paths[currentColor][paths[currentColor].length - 1];
-            const isConnected = DOTS.some(d => d.x === last.x && d.y === last.y && d.color === currentColor && paths[currentColor].length > 1 && (last.x !== paths[currentColor][0].x || last.y !== paths[currentColor][0].y));
-            
-            if (!isConnected) {
-                paths[currentColor] = [];
-            }
-            
-            drawAllPaths();
-            checkVictory();
-        }
+  function redrawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const color of colorOrder) {
+      if (drawnPaths[color]) drawPath(color, drawnPaths[color]);
+    }
+  }
 
-        function drawAllPaths() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.lineWidth = 12;
+  // 화면 크기 변경 시 대응
+  window.addEventListener('resize', () => {
+    const oldSize = canvas.width / cols;
+    const newSize = getCellSize();
+    if (oldSize !== newSize) {
+      resizeCanvas();
+    }
+  });
 
-            Object.keys(paths).forEach(color => {
-                const p = paths[color];
-                if (p.length < 1) return;
-
-                ctx.beginPath();
-                ctx.strokeStyle = COLORS[color];
-                
-                p.forEach((point, index) => {
-                    const cx = point.x * CELL_SIZE + CELL_SIZE / 2;
-                    const cy = point.y * CELL_SIZE + CELL_SIZE / 2;
-                    if (index === 0) ctx.moveTo(cx, cy);
-                    else ctx.lineTo(cx, cy);
-                });
-                ctx.stroke();
-            });
-        }
-
-        function checkVictory() {
-            const allConnected = Object.keys(COLORS).every(color => {
-                const p = paths[color];
-                if (p.length < 2) return false;
-                const start = p[0];
-                const end = p[p.length - 1];
-                const dots = DOTS.filter(d => d.color === color);
-                return dots.some(d => d.x === start.x && d.y === start.y) && 
-                       dots.some(d => d.x === end.x && d.y === end.y);
-            });
-
-            if (allConnected) {
-                completeButton.classList.remove('hidden');
-                // 모든 선이 연결되면 0.8초 후 자동 이동
-                setTimeout(() => {
-                    goToNextPage();
-                }, 800);
-            } else {
-                completeButton.classList.add('hidden');
-            }
-        }
-
-        function goToNextPage() {
-            window.location.href = targetUrl;
-        }
-
-        function resetGame() {
-            paths = { red: [], green: [], blue: [], purple: [] };
-            completeButton.classList.add('hidden');
-            drawAllPaths();
-        }
-
-        gridElement.addEventListener('mousedown', handleStart);
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', handleEnd);
-
-        gridElement.addEventListener('touchstart', handleStart, {passive: false});
-        window.addEventListener('touchmove', handleMove, {passive: false});
-        window.addEventListener('touchend', handleEnd);
-
-        initGrid();
-    </script>
+  window.onload = drawBoard;
+</script>
 </body>
 </html>
