@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Highschool - Story 1</title>
+    <title>Welcome Highschool - Story 3 & Light Simulator</title>
+    <!-- Tailwind CSS 사용 -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --primary-color: #000;
-            --error-color: #ff4d4d;
             --bg-color: #ffffff;
             --modal-bg: rgba(0, 0, 0, 0.7);
         }
@@ -20,8 +21,10 @@
             align-items: center;
             background-color: var(--bg-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow-x: hidden;
         }
 
+        /* 스토리 이미지 섹션 */
         .image-container {
             width: 100%;
             max-width: 800px;
@@ -35,116 +38,360 @@
             display: block;
         }
 
-        .interaction-container {
+        /* 조명 시뮬레이터 섹션 */
+        .light-simulator-section {
             width: 100%;
             max-width: 800px;
             padding: 40px 20px;
-            box-sizing: border-box;
             display: flex;
-            flex-direction: row; /* 가로 배치 */
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            gap: 10px; /* 요소 사이 간격 */
+            background-color: #fff;
         }
 
-        .input-field {
-            flex: 1; /* 남은 공간 차지 */
-            max-width: 200px; /* 입력창 최대 너비 제한 */
-            padding: 12px 15px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.3s;
+        .light-display-box {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            background-color: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
         }
 
-        .input-field:focus {
-            border-color: var(--primary-color);
+        .circle {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            mix-blend-mode: screen;
+            transition: opacity 0.4s ease-in-out;
+            opacity: 0;
+            filter: blur(10px);
         }
 
-        .move-button {
-            padding: 12px 25px; /* 버튼 크기 축소 */
-            font-size: 16px; /* 폰트 크기 조정 */
-            color: #fff;
-            background-color: var(--primary-color);
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: bold;
-            border: none;
+        #light-red { background-color: #ff0000; top: 35px; left: 70px; }
+        #light-green { background-color: #00ff00; bottom: 35px; right: 40px; }
+        #light-blue { background-color: #0000ff; bottom: 35px; left: 40px; }
+        .active { opacity: 1; }
+
+        /* 세로형 토글 스위치 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 26px;
+            height: 50px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
             cursor: pointer;
-            white-space: nowrap; /* 텍스트 줄바꿈 방지 */
-            transition: transform 0.2s, background-color 0.3s;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider:before { transform: translateY(-24px); }
+        input:checked + .slider.red { background-color: #ef4444; }
+        input:checked + .slider.blue { background-color: #3b82f6; }
+        input:checked + .slider.green { background-color: #22c55e; }
+
+        .status-label { font-size: 0.7rem; font-weight: 800; transition: color 0.3s; color: #d1d5db; }
+        .status-on.active-on { color: #1f2937; }
+        .status-off.active-off { color: #1f2937; }
+
+        /* 자물쇠 UI 섹션 */
+        .lock-section {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px 20px 60px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .move-button:active {
-            transform: scale(0.95);
+        .lock-container {
+            position: relative;
+            background: #e5e7eb;
+            padding: 20px 25px;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 8px;
+            border: 4px solid #9ca3af;
         }
 
-        /* 모달 스타일 */
-        .modal-overlay {
-            position: fixed;
+        .lock-handle {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 70px;
+            border: 12px solid #9ca3af;
+            border-bottom: none;
+            border-top-left-radius: 75px;
+            border-top-right-radius: 75px;
+            z-index: -1;
+        }
+
+        /* 다이얼 프레임 (마스킹 영역) */
+        .dial-frame {
+            width: 54px;
+            height: 70px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden; /* 영역 밖 글자 숨김 */
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid #d1d5db;
+            touch-action: none; /* 모바일에서 스크롤 간섭 방지 */
+        }
+
+        /* 회전하는 알파벳 스트립 */
+        .dial-strip {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background-color: var(--modal-bg);
-            display: none;
-            justify-content: center;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 개별 글자 칸 */
+        .dial-char {
+            height: 66px; /* 프레임 내부 높이에 맞춤 (70 - border) */
+            display: flex;
             align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #374151;
+            user-select: none;
         }
 
-        .modal-content {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            width: 80%;
-            max-width: 300px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        .dial-frame:hover {
+            border-color: #9ca3af;
         }
 
-        .modal-message {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #333;
-            font-weight: 500;
+        .dial-frame:active {
+            background-color: #f3f4f6;
         }
 
-        .modal-close-btn {
-            background-color: var(--primary-color);
-            color: #fff;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
+        /* 성공 애니메이션 */
+        @keyframes unlock {
+            0% { transform: translateY(0); }
+            30% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
         }
-
-        /* 모바일 대응: 화면이 너무 작으면 다시 세로로 배치 */
-        @media (max-width: 400px) {
-            .interaction-container {
-                flex-direction: column;
-            }
-            .input-field {
-                max-width: 100%;
-                width: 100%;
-            }
-            .move-button {
-                width: 100%;
-            }
+        .unlocked-anim {
+            animation: unlock 0.6s ease-in-out;
         }
     </style>
 </head>
 <body>
 
+    <!-- 스토리 이미지 영역 -->
     <div class="image-container">
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story3_1.png" alt="스토리3 이미지 1">
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story3_2.png" alt="스토리3 이미지 2">
         <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story3_3.png" alt="스토리3 이미지 3">
     </div>
 
+    <!-- 조명 시뮬레이터 영역 -->
+    <div class="light-simulator-section">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">빛의 삼원색 합성 실험</h2>
+            <p class="text-gray-500">세로 스위치를 사용하여 조명의 합성을 확인하세요.</p>
+        </div>
+
+        <div class="light-display-box">
+            <div id="light-red" class="circle"></div>
+            <div id="light-green" class="circle"></div>
+            <div id="light-blue" class="circle"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-8 w-full max-w-sm mb-12">
+            <div class="flex flex-col items-center">
+                <span id="on-red" class="status-label status-on mb-1">ON</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-red" onchange="updateLights()">
+                    <span class="slider red"></span>
+                </label>
+                <span id="off-red" class="status-label status-off mt-1 active-off">OFF</span>
+                <p class="mt-4 font-bold text-gray-700 text-sm italic">RED</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <span id="on-blue" class="status-label status-on mb-1">ON</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-blue" onchange="updateLights()">
+                    <span class="slider blue"></span>
+                </label>
+                <span id="off-blue" class="status-label status-off mt-1 active-off">OFF</span>
+                <p class="mt-4 font-bold text-gray-700 text-sm italic">BLUE</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <span id="on-green" class="status-label status-on mb-1">ON</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-green" onchange="updateLights()">
+                    <span class="slider green"></span>
+                </label>
+                <span id="off-green" class="status-label status-off mt-1 active-off">OFF</span>
+                <p class="mt-4 font-bold text-gray-700 text-sm italic">GREEN</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자물쇠 UI 영역 -->
+    <div class="lock-section">
+        <div class="text-center mb-10">
+            <h3 class="text-xl font-bold text-gray-800 mb-1">암호 자물쇠</h3>
+            <p class="text-gray-500 text-sm">클릭하거나 휠을 굴려 암호를 맞추세요.</p>
+        </div>
+
+        <div id="lock-body" class="lock-container">
+            <div class="lock-handle"></div>
+            <!-- 다이얼 5개 -->
+            <div id="frame-0" class="dial-frame" onclick="rotateDial(0, 1)">
+                <div id="strip-0" class="dial-strip"></div>
+            </div>
+            <div id="frame-1" class="dial-frame" onclick="rotateDial(1, 1)">
+                <div id="strip-1" class="dial-strip"></div>
+            </div>
+            <div id="frame-2" class="dial-frame" onclick="rotateDial(2, 1)">
+                <div id="strip-2" class="dial-strip"></div>
+            </div>
+            <div id="frame-3" class="dial-frame" onclick="rotateDial(3, 1)">
+                <div id="strip-3" class="dial-strip"></div>
+            </div>
+            <div id="frame-4" class="dial-frame" onclick="rotateDial(4, 1)">
+                <div id="strip-4" class="dial-strip"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story4.html";
+        const answer = "WHITE";
+        const alphabetPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const lockState = [0, 0, 0, 0, 0];
+        const dialOptions = [];
+        const CHAR_HEIGHT = 66; // dial-char의 실제 높이
+
+        // 자물쇠 초기화 및 스트립 생성
+        function initLock() {
+            for (let i = 0; i < 5; i++) {
+                let options = [answer[i]];
+                while (options.length < 8) {
+                    let randomChar = alphabetPool[Math.floor(Math.random() * alphabetPool.length)];
+                    if (!options.includes(randomChar)) options.push(randomChar);
+                }
+                options.sort(() => Math.random() - 0.5);
+                dialOptions.push(options);
+
+                // 스트립 엘리먼트에 글자들 채우기
+                const strip = document.getElementById(`strip-${i}`);
+                options.forEach(char => {
+                    const charDiv = document.createElement('div');
+                    charDiv.className = 'dial-char';
+                    charDiv.innerText = char;
+                    strip.appendChild(charDiv);
+                });
+
+                // 휠(스크롤) 이벤트 리스너 추가
+                const frame = document.getElementById(`frame-${i}`);
+                frame.addEventListener('wheel', (e) => {
+                    e.preventDefault(); // 페이지 스크롤 방지
+                    if (e.deltaY > 0) {
+                        rotateDial(i, 1);  // 아래로 스크롤 -> 다음 글자
+                    } else {
+                        rotateDial(i, -1); // 위로 스크롤 -> 이전 글자
+                    }
+                }, { passive: false });
+            }
+        }
+
+        /**
+         * 다이얼 회전 로직
+         * @param {number} index - 다이얼 인덱스 (0-4)
+         * @param {number} direction - 회전 방향 (1: 다음/아래, -1: 이전/위)
+         */
+        function rotateDial(index, direction = 1) {
+            // 인덱스 순환 계산 (0-7 사이 유지)
+            lockState[index] = (lockState[index] + direction + 8) % 8;
+            
+            const strip = document.getElementById(`strip-${index}`);
+            // translateY를 조절하여 스트립을 이동시킴
+            strip.style.transform = `translateY(-${lockState[index] * CHAR_HEIGHT}px)`;
+            
+            checkLock();
+        }
+
+        // 정답 체크
+        function checkLock() {
+            let currentCombo = "";
+            for (let i = 0; i < 5; i++) {
+                currentCombo += dialOptions[i][lockState[i]];
+            }
+
+            if (currentCombo === answer) {
+                const lockBody = document.getElementById('lock-body');
+                lockBody.classList.add('unlocked-anim');
+                lockBody.style.borderColor = "#10b981";
+                
+                // 성공 시 클릭/스크롤 잠금
+                document.querySelectorAll('.dial-frame').forEach(f => f.style.pointerEvents = 'none');
+                
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 800);
+            }
+        }
+
+        // 조명 시뮬레이터 로직
+        function updateLights() {
+            const red = document.getElementById('toggle-red').checked;
+            const blue = document.getElementById('toggle-blue').checked;
+            const green = document.getElementById('toggle-green').checked;
+
+            updateUI('light-red', red, 'red');
+            updateUI('light-blue', blue, 'blue');
+            updateUI('light-green', green, 'green');
+        }
+
+        function updateUI(lightId, isOn, colorName) {
+            const light = document.getElementById(lightId);
+            if (isOn) light.classList.add('active');
+            else light.classList.remove('active');
+
+            const onLabel = document.getElementById(`on-${colorName}`);
+            const offLabel = document.getElementById(`off-${colorName}`);
+            
+            if (isOn) {
+                onLabel.classList.add('active-on');
+                offLabel.classList.remove('active-off');
+            } else {
+                onLabel.classList.remove('active-on');
+                offLabel.classList.add('active-off');
+            }
+        }
+
+        window.onload = function() {
+            updateLights();
+            initLock();
+        };
+    </script>
 </body>
 </html>
