@@ -1,1 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비밀번호 입력</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f3f4f6;
+            touch-action: manipulation;
+        }
 
+        .keypad-button {
+            transition: all 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .keypad-button:active {
+            transform: scale(0.95);
+            background-color: #e5e7eb;
+        }
+
+        /* 기본 동그라미 스타일: 처음부터 색상을 가지고 있으며 투명도가 낮음 */
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            opacity: 0.3; /* 기본 상태는 반투명 */
+        }
+
+        /* 위치별 고유 색상 설정 */
+        .dot:nth-child(1) { background-color: #f472b6; } /* 분홍색 */
+        .dot:nth-child(2) { background-color: #facc15; } /* 노란색 */
+        .dot:nth-child(3) { background-color: #4ade80; } /* 연두색 */
+        .dot:nth-child(4) { background-color: #a855f7; } /* 보라색 */
+
+        /* 입력되었을 때(active): 투명도가 없어지고 크기가 커짐 */
+        .dot.active { 
+            opacity: 1; 
+            transform: scale(1.3);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .image-container img {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- 이미지 컨테이너 -->
+    <div class="image-container flex flex-col gap-4 mb-8 w-full">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story6_1.png" alt="스토리 이미지 1" onerror="this.src='https://via.placeholder.com/600x400?text=Image+1+Not+Found'">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story6_2.png" alt="스토리 이미지 2" onerror="this.src='https://via.placeholder.com/600x400?text=Image+2+Not+Found'">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story6_3.png" alt="스토리 이미지 3" onerror="this.src='https://via.placeholder.com/600x400?text=Image+3+Not+Found'">
+    </div>
+
+    <!-- 키패드 영역 -->
+    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm">
+        <h2 class="text-center text-xl font-bold mb-6 text-gray-700">비밀번호를 입력하세요</h2>
+        
+        <!-- 비밀번호 표시 (처음부터 색깔이 있는 점) -->
+        <div id="dot-container" class="flex justify-center gap-6 mb-8">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+
+        <!-- 숫자 키패드 -->
+        <div class="grid grid-cols-3 gap-4">
+            <button onclick="appendNumber('1')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">1</button>
+            <button onclick="appendNumber('2')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">2</button>
+            <button onclick="appendNumber('3')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">3</button>
+            <button onclick="appendNumber('4')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">4</button>
+            <button onclick="appendNumber('5')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">5</button>
+            <button onclick="appendNumber('6')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">6</button>
+            <button onclick="appendNumber('7')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">7</button>
+            <button onclick="appendNumber('8')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">8</button>
+            <button onclick="appendNumber('9')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">9</button>
+            <button onclick="clearAll()" class="keypad-button h-16 text-sm font-semibold text-red-500 bg-gray-50 rounded-2xl">취소</button>
+            <button onclick="appendNumber('0')" class="keypad-button h-16 text-2xl font-semibold bg-gray-50 rounded-2xl">0</button>
+            <button onclick="popNumber()" class="keypad-button h-16 text-sm font-semibold text-gray-500 bg-gray-50 rounded-2xl">지움</button>
+        </div>
+
+        <!-- 메시지 영역 -->
+        <div id="message" class="mt-6 text-center h-6 text-sm font-medium transition-colors"></div>
+    </div>
+
+    <script>
+        const CORRECT_PASSWORD = "0389";
+        const TARGET_URL = "https://realmetawinner.github.io/welcome-highschool/story7.html";
+        
+        let currentInput = "";
+        const dots = document.querySelectorAll('.dot');
+        const messageEl = document.getElementById('message');
+        const dotContainer = document.getElementById('dot-container');
+
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                if (index < currentInput.length) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        function showMessage(text, isError = false) {
+            messageEl.textContent = text;
+            messageEl.className = `mt-6 text-center h-6 text-sm font-medium ${isError ? 'text-red-500' : 'text-blue-500'}`;
+        }
+
+        function appendNumber(num) {
+            if (currentInput.length >= 4) return;
+            
+            currentInput += num;
+            updateDots();
+            showMessage("");
+
+            if (currentInput.length === 4) {
+                setTimeout(checkPassword, 100); // 마지막 점이 찍히는 것을 보여주기 위한 지연
+            }
+        }
+
+        function popNumber() {
+            currentInput = currentInput.slice(0, -1);
+            updateDots();
+            showMessage("");
+        }
+
+        function clearAll() {
+            currentInput = "";
+            updateDots();
+            showMessage("");
+        }
+
+        function checkPassword() {
+            if (currentInput === CORRECT_PASSWORD) {
+                showMessage("성공! 곧 문이 열립니다.");
+                setTimeout(() => {
+                    window.location.href = TARGET_URL;
+                }, 1000);
+            } else {
+                dotContainer.classList.add('shake');
+                showMessage("비밀번호가 틀렸습니다.", true);
+                
+                setTimeout(() => {
+                    dotContainer.classList.remove('shake');
+                    currentInput = "";
+                    updateDots();
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
