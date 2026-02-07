@@ -2,286 +2,211 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>아이템 획득</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자물쇠 숫자 맞추기</title>
   <style>
-    /* 기본 스타일 설정 */
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #333;
+      --pink: #ff69b4;
+      --yellow: #f9e79f;
+      --blue: #1e90ff;
+    }
+
     body {
-      margin: 0;
-      padding: 0;
-      background: #ffffff; /* 바탕화면 하얀색 */
-      text-align: center;
-      font-family: 'Pretendard', sans-serif;
-      color: #222;
-      overflow-x: hidden;
-    }
-
-    /* 상단 스토리 이미지 컨테이너 */
-    .story-container {
+      background-color: var(--bg-color);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      max-width: 900px;
-      width: 95%;
-      margin: 20px auto 10px;
-      flex-wrap: wrap; /* 모바일 대응 */
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0; /* 이미지부터 시작하도록 패딩 제거 */
+      box-sizing: border-box;
     }
 
-    .story-container img {
-      flex: 1 1 calc(50% - 10px); /* 데스크톱에서 2분할 */
-      max-width: 100%;
-      height: auto;
-      display: block;
-      border: none; /* 프레임 제거 */
+    .container {
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      background: white;
     }
 
-    /* 이미지 컨테이너: 반응형 및 레이어 기준점 */
-    #image-container {
-      position: relative;
-      display: inline-block;
-      max-width: 900px;
-      width: 95%;
-      margin: 10px auto 30px;
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    #image-container img {
+    /* 이미지 스타일: 프레임 없이 반응형으로 설정 */
+    .header-image {
       width: 100%;
       height: auto;
       display: block;
+      border: none;
     }
 
-    /* 아이템 카운터 레이어 */
-    #item-counter {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.75);
-      padding: 10px 20px;
-      border-radius: 50px;
-      font-size: 18px;
+    /* 이미지 사이 간격이나 하단 여백 조절 */
+    .image-group {
+      margin-bottom: 30px;
+    }
+
+    .input-section {
+      padding: 0 20px 40px 20px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      color: var(--text-color);
+      font-size: 1.5rem;
+    }
+
+    .lock {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+
+    .digit {
+      width: 70px;
+      height: 70px;
+      font-size: 2rem;
       font-weight: bold;
+      border-radius: 15px;
+      border: none;
+      cursor: pointer;
       color: #fff;
-      border: 2px solid #4CAF50;
-      z-index: 10;
       display: flex;
       align-items: center;
-      gap: 10px;
-      backdrop-filter: blur(5px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      justify-content: center;
+      transition: transform 0.1s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    #current-count {
-      color: #4CAF50;
-      font-size: 22px;
+    .digit:active {
+      transform: scale(0.9);
     }
 
-    /* 클릭 영역 스타일 */
-    .click-area {
-      position: absolute;
+    .pink   { background-color: var(--pink); }
+    .yellow { background-color: var(--yellow); color: #333; }
+    .blue   { background-color: var(--blue); }
+
+    #checkBtn {
+      width: 100%;
+      max-width: 240px;
+      padding: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
       cursor: pointer;
-      background-color: rgba(255, 255, 255, 0); 
-      transition: background-color 0.2s;
-      border-radius: 4px;
+      background-color: #333;
+      color: white;
+      transition: background-color 0.3s;
     }
 
-    .click-area:hover {
-      background-color: rgba(0, 0, 0, 0.05);
+    #checkBtn:hover {
+      background-color: #555;
     }
 
-    /* 팝업(모달) 스타일 */
-    #popup {
+    /* 커스텀 메시지 박스 스타일 */
+    #messageOverlay {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
       display: none;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       z-index: 1000;
     }
 
-    #popup-content {
+    .message-box {
       background: white;
-      padding: 40px;
-      border-radius: 24px;
+      padding: 30px;
+      border-radius: 15px;
       text-align: center;
-      min-width: 300px;
-      color: #333;
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    #emoji {
-      font-size: 72px;
-      margin-bottom: 15px;
-      display: block;
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
-    #popup-message {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 25px;
+    .message-box p {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
     }
 
-    #popup button {
-      padding: 12px 40px;
-      font-size: 16px;
+    .close-btn {
+      padding: 10px 25px;
       background: #333;
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: bold;
-    }
-
-    /* 다음 단계 버튼 */
-    #next-button {
-      display: none;
-      margin: 20px auto 50px;
-      padding: 20px 50px;
-      font-size: 20px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
-      animation: bounce 2s infinite;
-    }
-
-    /* 애니메이션 */
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.6); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-      40% {transform: translateY(-12px);}
-      60% {transform: translateY(-6px);}
-    }
-
-    /* 터치 디바이스 및 모바일 대응 */
-    @media (max-width: 600px) {
-      .story-container img {
-        flex: 1 1 100%; /* 모바일에서 100% 너비로 세로 정렬 */
-      }
-      #item-counter { font-size: 14px; padding: 6px 14px; }
-      #current-count { font-size: 18px; }
-      #popup-content { width: 80%; padding: 30px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- 상단 스토리 이미지 영역 -->
-  <div class="story-container">
-    <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story9_1.png" alt="Story 9-1">
-    <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story9_2.png" alt="Story 9-2">
-  </div>
-
-  <div id="image-container">
-    <!-- 획득 현황 레이어 -->
-    <div id="item-counter">
-      <span style="font-size: 14px; opacity: 0.8;">아이템 수집</span>
-      <span><span id="current-count">0</span> / <span id="total-count">4</span></span>
+  <div class="container">
+    <!-- 이미지 그룹 -->
+    <div class="image-group">
+      <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story9_1.png" alt="Story Image 1" class="header-image" onerror="this.style.display='none'">
+      <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story9_2.png" alt="Story Image 2" class="header-image" onerror="this.style.display='none'">
     </div>
-
-    <!-- 배경 이미지 (GitHub Raw 경로) -->
-    <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/classroom.png" 
-         alt="교실 배경" 
-         onerror="this.src='https://via.placeholder.com/800x450?text=이미지를+불러올+수+없습니다'">
-
-    <!-- 클릭 가능한 아이템 영역들 -->
-    <div class="click-area" style="top: 23.31%; left: 15.41%; width: 9.03%; height: 6.32%;"
-         onclick="collectItem('건전지를 획득하였습니다!', '🔋', 'clock')"></div>
-
-    <div class="click-area" style="top: 8.00%; left: 22.96%; width: 4.00%; height: 4.74%;"
-         onclick="collectItem('전구를 획득하였습니다!', '💡', 'lamp')"></div>
-
-    <div class="click-area" style="top: 33.48%; left: 51.11%; width: 21.78%; height: 19.85%;"
-         onclick="collectItem('회로도를 획득하였습니다!', '📄', 'board')"></div>
-
-    <div class="click-area" style="top: 84.15%; left: 55.70%; width: 8.60%; height: 4.25%;"
-         onclick="collectItem('구리선을 획득하였습니다!', '🔗', 'drawer')"></div>
-  </div>
-
-  <!-- 결과 알림 팝업 -->
-  <div id="popup">
-    <div id="popup-content">
-      <span id="emoji"></span>
-      <div id="popup-message"></div>
-      <button onclick="closePopup()">확인</button>
+    
+    <div class="input-section">
+      <h1>🔒 비밀번호 입력</h1>
+      <div class="lock">
+        <button class="digit pink"   onclick="rotate(0)">0</button>
+        <button class="digit yellow" onclick="rotate(1)">0</button>
+        <button class="digit blue"   onclick="rotate(2)">0</button>
+      </div>
+      <button id="checkBtn" onclick="checkCode()">확인</button>
     </div>
   </div>
 
-  <!-- 완료 후 나타나는 버튼 -->
-  <button id="next-button" onclick="goNext()">아이템 조합하러 가기</button>
+  <div id="messageOverlay">
+    <div class="message-box">
+      <p id="messageText">❌ 비밀번호가 틀렸습니다.</p>
+      <button class="close-btn" onclick="closeMessage()">다시 시도</button>
+    </div>
+  </div>
 
   <script>
-    // 아이템 상태 관리 객체
-    const inventory = {
-      clock: false,
-      lamp: false,
-      board: false,
-      drawer: false
-    };
+    const correctCode = [1, 2, 5];
+    const targetUrl = 'https://github.com/realmetawinner/welcome-highschool/story10.html';
+    const buttons = document.querySelectorAll('.digit');
+    const overlay = document.getElementById('messageOverlay');
 
-    const TOTAL_ITEMS = Object.keys(inventory).length;
-
-    /**
-     * 화면 상단의 카운터를 업데이트합니다.
-     */
-    function updateCounterUI() {
-      const currentCount = Object.values(inventory).filter(item => item === true).length;
-      document.getElementById('current-count').innerText = currentCount;
-      document.getElementById('total-count').innerText = TOTAL_ITEMS;
-      return currentCount;
+    function rotate(index) {
+      let current = parseInt(buttons[index].innerText);
+      current = (current + 1) % 10;
+      buttons[index].innerText = current;
+      
+      if (navigator.vibrate) navigator.vibrate(10);
     }
 
-    /**
-     * 아이템을 클릭했을 때 처리
-     */
-    function collectItem(message, emoji, key) {
-      if (inventory[key]) return;
-
-      inventory[key] = true;
-      const count = updateCounterUI();
-
-      document.getElementById('emoji').innerText = emoji;
-      document.getElementById('popup-message').innerText = message;
-      document.getElementById('popup').style.display = 'flex';
-
-      if (count === TOTAL_ITEMS) {
-        setTimeout(() => {
-          document.getElementById('next-button').style.display = 'block';
-          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 500);
+    function checkCode() {
+      const input = Array.from(buttons).map(btn => parseInt(btn.innerText));
+      
+      if (JSON.stringify(input) === JSON.stringify(correctCode)) {
+        window.location.href = targetUrl;
+      } else {
+        showMessage('❌ 비밀번호가 틀렸습니다.');
       }
     }
 
-    /**
-     * 팝업 닫기
-     */
-    function closePopup() {
-      document.getElementById('popup').style.display = 'none';
+    function showMessage(text) {
+      document.getElementById('messageText').innerText = text;
+      overlay.style.display = 'flex';
     }
 
-    /**
-     * 다음 시나리오로 이동
-     */
-    function goNext() {
-      window.location.href = "https://realmetawinner.github.io/welcome-highschool/story10.html";
+    function closeMessage() {
+      overlay.style.display = 'none';
     }
-
-    window.onload = updateCounterUI;
   </script>
-
 </body>
 </html>
