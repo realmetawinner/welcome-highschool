@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웰컴 하이스크룰 - 스토리 14</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --story-bg: #f3f4f6;
+            --panel-bg: #1e1e1e;
+            --main-red: #ff3b30;
+            --sub-green: #4cd964;
+            --off-track: #3a3a3a;
+            --btn-yellow: #f1c40f;
+            --btn-yellow-shadow: #c09c0d;
+            --display-bg: #000000;
+        }
+
+        body {
+            background-color: var(--story-bg);
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 상단 이미지 섹션 */
+        .full-width-images {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 24px 0;
+        }
+        .full-width-images img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        /* 제어 패널 컨테이너 */
+        .panel-container {
+            width: 100%;
+            max-width: 480px;
+            margin-bottom: 80px;
+            padding: 0 16px;
+        }
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 32px;
+            padding: 48px 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .panel h1 {
+            color: #999;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            margin-bottom: 32px;
+            text-transform: uppercase;
+        }
+
+        /* 메인 차단기 박스 (빨간 점선) */
+        .main-breaker-box {
+            border: 1.5px dashed var(--main-red);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            background: rgba(255, 59, 48, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .breaker-label {
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        /* 보조 스위치 그룹 박스 (회색 점선) */
+        .sub-switches-box {
+            border: 1.5px dashed #444;
+            border-radius: 16px;
+            padding: 32px 16px;
+            margin-bottom: 32px;
+            background: rgba(255, 255, 255, 0.01);
+        }
+        .sub-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px 12px;
+        }
+
+        .switch-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .sw-name { color: #fff; font-size: 0.9rem; font-weight: 700; }
+        .sw-watts { color: #777; font-size: 0.7rem; font-family: monospace; }
+
+        /* 토글 스위치 디자인 */
+        .toggle {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            cursor: pointer;
+        }
+        .toggle input { display: none; }
+        .slider {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--off-track);
+            border-radius: 30px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .slider::before {
+            content: "";
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 메인 차단기 ON 상태: 빨간색 */
+        #main-switch:checked + .slider {
+            background-color: var(--main-red);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+
+        /* 보조 스위치 ON 상태: 초록색 */
+        .sub-sw:checked + .slider {
+            background-color: var(--sub-green);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 0 10px rgba(76, 217, 100, 0.4);
+        }
+
+        input:checked + .slider::before {
+            transform: translateX(24px);
+        }
+        
+        input:disabled + .slider {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        input:disabled + .slider::before {
+            background-color: #888;
+        }
+
+        /* 상태 표시창 */
+        .display {
+            background: var(--display-bg);
+            border-radius: 8px;
+            padding: 18px;
+            color: var(--sub-green);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 32px;
+            letter-spacing: 2px;
+            box-shadow: inset 0 0 15px rgba(76, 217, 100, 0.1);
+            border: 1px solid #222;
+        }
+
+        /* 작동 버튼 디자인 (크기 1/5 축소: 110px -> 88px) */
+        .run-btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .run-btn {
+            width: 88px;
+            height: 88px;
+            background: var(--btn-yellow);
+            border-radius: 50%;
+            border: none;
+            color: #000;
+            font-weight: 900;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--btn-yellow-shadow), 0 12px 20px rgba(0,0,0,0.4);
+            transition: all 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.2;
+            text-align: center;
+        }
+        .run-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 var(--btn-yellow-shadow), 0 6px 10px rgba(0,0,0,0.4);
+        }
+        .status-msg {
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* 가동 실패 모달 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal {
+            background: #fff; padding: 40px; border-radius: 28px;
+            text-align: center; width: 85%; max-width: 320px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .modal h3 { font-size: 1.6rem; color: var(--main-red); margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="full-width-images">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story14_1.png" alt="이미지1">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story14_2.png" alt="이미지2">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story14_3.png" alt="이미지3">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story14_4.png" alt="이미지4">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story14_5.png" alt="이미지5">
+    </div>
+
+    <div class="panel-container">
+        <div class="panel">
+            <h1>POWER CONTROL CENTER</h1>
+
+            <!-- 메인 차단기 -->
+            <div class="main-breaker-box">
+                <span class="breaker-label">메인 차단기</span>
+                <label class="toggle">
+                    <input type="checkbox" id="main-switch" onchange="togglePower()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- 보조 스위치 그룹 -->
+            <div class="sub-switches-box">
+                <div class="sub-grid">
+                    <div class="switch-item">
+                        <span class="sw-name">스피커</span>
+                        <span class="sw-watts">420[W]</span>
+                        <label class="toggle"><input type="checkbox" class="sub-sw" id="sw-1" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="switch-item">
+                        <span class="sw-name">백열등</span>
+                        <span class="sw-watts">680[W]</span>
+                        <label class="toggle"><input type="checkbox" class="sub-sw" id="sw-2" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="switch-item">
+                        <span class="sw-name">전광판</span>
+                        <span class="sw-watts">250[W]</span>
+                        <label class="toggle"><input type="checkbox" class="sub-sw" id="sw-3" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="switch-item">
+                        <span class="sw-name">에어컨</span>
+                        <span class="sw-watts">1500[W]</span>
+                        <label class="toggle"><input type="checkbox" class="sub-sw" id="sw-4" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="switch-item">
+                        <span class="sw-name">스크린</span>
+                        <span class="sw-watts">560[W]</span>
+                        <label class="toggle"><input type="checkbox" class="sub-sw" id="sw-5" disabled><span class="slider"></span></label>
+                    </div>
+                    <div class="switch-item">
+                        <span class="sw-name">커튼</span>
+                        <span class="sw-watts">340[W]</span>
+                        <label class="toggle"><input type="checkbox" class="sub-sw" id="sw-6" disabled><span class="slider"></span></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="display" id="display-text">READY</div>
+
+            <!-- 작동 버튼 (크기 축소됨) -->
+            <div class="run-btn-container">
+                <button class="run-btn" onclick="startSystem()">작동<br>버튼</button>
+                <span class="status-msg" id="status-msg">메인 차단기를 켜주세요.</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mb-12 text-gray-400 text-xs text-center tracking-widest">
+        &copy; WELCOME HIGHSCHOOL SYSTEM ADMIN
+    </footer>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h3 class="font-bold">가동 실패</h3>
+            <p class="text-gray-500 mb-8 leading-relaxed">전력값이 올바르지 않습니다.<br>다시 확인해 주십시오.</p>
+            <button onclick="closeModal()" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold active:scale-95 transition-transform">재시도</button>
+        </div>
+    </div>
+
+    <script>
+        const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story15.html";
+        
+        const mainSw = document.getElementById('main-switch');
+        const subSws = document.querySelectorAll('.sub-sw');
+        const displayText = document.getElementById('display-text');
+        const statusMsg = document.getElementById('status-msg');
+        let isRunning = false;
+
+        function togglePower() {
+            const isOn = mainSw.checked;
+            subSws.forEach(sw => {
+                sw.disabled = !isOn;
+                if(!isOn) sw.checked = false;
+            });
+            if(isOn) {
+                displayText.innerText = "READY";
+                statusMsg.innerText = "전력값을 확인하고 동작버튼을 누르세요.";
+                displayText.style.color = "#4cd964";
+            } else {
+                displayText.innerText = "OFF";
+                statusMsg.innerText = "메인 차단기를 켜주세요.";
+                displayText.style.color = "#444";
+            }
+        }
+
+        function startSystem() {
+            if(!mainSw.checked || isRunning) return;
+
+            isRunning = true;
+            let count = 3;
+            const timer = setInterval(() => {
+                displayText.innerText = "CHECK " + count;
+                count--;
+                if(count < 0) {
+                    clearInterval(timer);
+                    validateSystem();
+                }
+            }, 600);
+        }
+
+        function validateSystem() {
+            // 성공 조건: 스피커(1), 백열등(2), 커튼(6)이 켜져 있을 때 성공
+            const s1 = document.getElementById('sw-1').checked;
+            const s2 = document.getElementById('sw-2').checked;
+            const s6 = document.getElementById('sw-6').checked;
+            const othersOff = !document.getElementById('sw-3').checked && 
+                              !document.getElementById('sw-4').checked && 
+                              !document.getElementById('sw-5').checked;
+
+            if(s1 && s2 && s6 && othersOff) {
+                displayText.innerText = "SUCCESS";
+                displayText.style.color = "#4cd964";
+                statusMsg.innerText = "시스템 가동 승인. 이동합니다.";
+                setTimeout(() => { window.location.href = targetUrl; }, 1200);
+            } else {
+                displayText.innerText = "FAILED";
+                displayText.style.color = "#ff3b30";
+                document.getElementById('modal-overlay').style.display = 'flex';
+            }
+            isRunning = false;
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            mainSw.checked = false;
+            togglePower();
+        }
+    </script>
+</body>
+</html>
