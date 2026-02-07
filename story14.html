@@ -176,7 +176,7 @@
             border: 1px solid #222;
         }
 
-        /* 작동 버튼 디자인 (크기 1/5 축소: 110px -> 88px) */
+        /* 작동 버튼 디자인 */
         .run-btn-container {
             display: flex;
             flex-direction: column;
@@ -287,10 +287,10 @@
 
             <div class="display" id="display-text">READY</div>
 
-            <!-- 작동 버튼 (크기 축소됨) -->
+            <!-- 작동 버튼 -->
             <div class="run-btn-container">
                 <button class="run-btn" onclick="startSystem()">작동<br>버튼</button>
-                <span class="status-msg" id="status-msg">메인 차단기를 켜주세요.</span>
+                <span class="status-msg" id="status-msg">메인 전원을 켜주세요.</span>
             </div>
         </div>
     </div>
@@ -302,7 +302,7 @@
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal">
             <h3 class="font-bold">가동 실패</h3>
-            <p class="text-gray-500 mb-8 leading-relaxed">전력값이 올바르지 않습니다.<br>다시 확인해 주십시오.</p>
+            <p class="text-gray-500 mb-8 leading-relaxed">회로 구성이 올바르지 않습니다.<br>다시 확인해 주십시오.</p>
             <button onclick="closeModal()" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold active:scale-95 transition-transform">재시도</button>
         </div>
     </div>
@@ -324,11 +324,11 @@
             });
             if(isOn) {
                 displayText.innerText = "READY";
-                statusMsg.innerText = "전력값을 확인하고 동작버튼을 누르세요.";
+                statusMsg.innerText = "보조 장치를 설정하고 버튼을 누르세요.";
                 displayText.style.color = "#4cd964";
             } else {
                 displayText.innerText = "OFF";
-                statusMsg.innerText = "메인 차단기를 켜주세요.";
+                statusMsg.innerText = "메인 전원을 켜주세요.";
                 displayText.style.color = "#444";
             }
         }
@@ -349,15 +349,17 @@
         }
 
         function validateSystem() {
-            // 성공 조건: 스피커(1), 백열등(2), 커튼(6)이 켜져 있을 때 성공
-            const s1 = document.getElementById('sw-1').checked;
-            const s2 = document.getElementById('sw-2').checked;
-            const s6 = document.getElementById('sw-6').checked;
+            // 성공 조건: 스피커(1), 백열등(2), 스크린(5), 커튼(6)이 모두 ON
+            const s1 = document.getElementById('sw-1').checked; // 스피커
+            const s2 = document.getElementById('sw-2').checked; // 백열등
+            const s5 = document.getElementById('sw-5').checked; // 스크린
+            const s6 = document.getElementById('sw-6').checked; // 커튼
+            
+            // 나머지(전광판, 에어컨)는 OFF 상태여야 함
             const othersOff = !document.getElementById('sw-3').checked && 
-                              !document.getElementById('sw-4').checked && 
-                              !document.getElementById('sw-5').checked;
+                              !document.getElementById('sw-4').checked;
 
-            if(s1 && s2 && s6 && othersOff) {
+            if(s1 && s2 && s5 && s6 && othersOff) {
                 displayText.innerText = "SUCCESS";
                 displayText.style.color = "#4cd964";
                 statusMsg.innerText = "시스템 가동 승인. 이동합니다.";
