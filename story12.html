@@ -1,1 +1,295 @@
-story12
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f8f9fa;
+        touch-action: manipulation;
+      }
+      
+      /* 상단 스토리 이미지 영역 */
+      #intro-images {
+        width: 100%;
+        max-width: 480px;
+        line-height: 0; /* 이미지 사이 간격 제거 */
+      }
+      #intro-images img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      #wrapper {
+        width: 100%;
+        max-width: 480px;
+        padding: 20px 10px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #puzzle-board {
+        width: 100%;
+        aspect-ratio: 4 / 2;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 2px;
+        border: 3px solid #333;
+        position: relative;
+        background-color: #eee;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      .puzzle-slot {
+        border: 1px dashed #bbb;
+        position: relative;
+        overflow: hidden;
+        background-color: rgba(255, 255, 255, 0.5);
+      }
+      .puzzle-slot .puzzle-piece {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      #piece-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 25px;
+        min-height: 120px;
+        width: 100%;
+        padding: 10px;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        align-content: flex-start;
+      }
+      .puzzle-piece {
+        width: calc((100% - 3 * 8px) / 4);
+        aspect-ratio: 1 / 1;
+        background-image: url('https://i.imgur.com/r4ORRmx.png');
+        background-size: 400% 200%;
+        cursor: grab;
+        position: relative;
+        z-index: 10;
+        flex-shrink: 0;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+      .puzzle-piece:active {
+        cursor: grabbing;
+      }
+
+      #check-button {
+        display: none;
+        margin-top: 20px;
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        z-index: 20;
+        box-shadow: 0 4px 0 #388E3C;
+        transition: transform 0.1s;
+      }
+      #check-button:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 #388E3C;
+      }
+
+      #reset-button {
+        margin-top: 15px;
+        padding: 8px 16px;
+        font-size: 14px;
+        background: #f44336;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        opacity: 0.8;
+      }
+
+      #instruction {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 16px;
+        color: #888;
+        text-align: center;
+        width: 100%;
+        pointer-events: none;
+        z-index: 5;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 상단 스토리 이미지 -->
+    <div id="intro-images">
+      <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story12_1.png" alt="12-1">
+      <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story12_2.png" alt="12-2">
+      <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story12_3.png" alt="12-3">
+      <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story12_4.png" alt="12-4">
+    </div>
+
+    <div id="wrapper">
+      <div id="puzzle-board">
+        <div id="instruction">🧩 여기로 퍼즐 조각을 끌어오세요</div>
+      </div>
+      
+      <!-- 성공 버튼 (현재 창에서 이동) -->
+      <button id="check-button" onclick="goToNextStep()">전자피아노 회로 획득</button>
+      
+      <div id="piece-container"></div>
+      
+      <button id="reset-button" onclick="resetPuzzle()">퍼즐 다시 섞기</button>
+    </div>
+
+    <script>
+      const board = document.getElementById('puzzle-board');
+      const container = document.getElementById('piece-container');
+      const checkButton = document.getElementById('check-button');
+      const instruction = document.getElementById('instruction');
+      const targetUrl = "https://realmetawinner.github.io/welcome-highschool/story13.html";
+
+      const rows = 2;
+      const cols = 4;
+      let pieces = [];
+      let dragged = null;
+
+      function goToNextStep() {
+        // 현재 창에서 페이지 전환
+        window.location.href = targetUrl;
+      }
+
+      function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+      }
+
+      function createPuzzlePieces() {
+        pieces = [];
+        for (let i = 0; i < rows * cols; i++) {
+          const piece = document.createElement('div');
+          piece.className = 'puzzle-piece';
+          piece.draggable = true;
+          piece.dataset.index = i;
+          
+          // 배경 이미지 위치 계산 (4x2 비율에 맞춤)
+          const posX = (i % cols) * (100 / (cols - 1));
+          const posY = Math.floor(i / cols) * 100;
+          piece.style.backgroundPosition = `${posX}% ${posY}%`;
+          
+          piece.addEventListener('dragstart', dragStart);
+          pieces.push(piece);
+        }
+        shuffle(pieces);
+      }
+
+      function renderPuzzle() {
+        // 기존 내용 초기화
+        board.querySelectorAll('.puzzle-slot').forEach(slot => slot.remove());
+        container.innerHTML = '';
+        checkButton.style.display = 'none';
+        instruction.style.display = 'block';
+
+        // 슬롯 생성
+        for (let i = 0; i < rows * cols; i++) {
+          const slot = document.createElement('div');
+          slot.className = 'puzzle-slot';
+          slot.dataset.index = i;
+          slot.addEventListener('dragover', dragOver);
+          slot.addEventListener('drop', drop);
+          board.appendChild(slot);
+        }
+
+        // 섞인 조각들을 컨테이너에 배치
+        pieces.forEach(piece => {
+          container.appendChild(piece);
+        });
+      }
+
+      function dragStart(e) {
+        dragged = e.target;
+      }
+
+      function dragOver(e) {
+        e.preventDefault();
+      }
+
+      function drop(e) {
+        let targetSlot = e.target;
+        
+        // 조각 위에 드롭했을 경우를 대비해 슬롯을 찾음
+        if (!targetSlot.classList.contains('puzzle-slot')) {
+          targetSlot = targetSlot.closest('.puzzle-slot');
+        }
+
+        if (targetSlot && targetSlot.classList.contains('puzzle-slot') && targetSlot.children.length === 0) {
+          dragged.style.position = 'absolute';
+          dragged.style.left = '0';
+          dragged.style.top = '0';
+          targetSlot.appendChild(dragged);
+          checkComplete();
+        }
+      }
+
+      function checkComplete() {
+        const slots = document.querySelectorAll('.puzzle-slot');
+        let filledCount = 0;
+        let correctCount = 0;
+
+        slots.forEach(slot => {
+          if (slot.children.length > 0) {
+            filledCount++;
+            const piece = slot.children[0];
+            if (piece.dataset.index == slot.dataset.index) {
+              correctCount++;
+            }
+          }
+        });
+
+        // 조각을 하나라도 올리면 안내 문구 제거
+        if (filledCount > 0) instruction.style.display = 'none';
+
+        // 모든 조각이 제자리에 있을 때만 버튼 표시
+        if (correctCount === rows * cols) {
+          checkButton.style.display = 'block';
+        } else {
+          checkButton.style.display = 'none';
+        }
+      }
+
+      function resetPuzzle() {
+        createPuzzlePieces();
+        renderPuzzle();
+      }
+
+      // 초기 실행
+      createPuzzlePieces();
+      renderPuzzle();
+    </script>
+  </body>
+</html>
