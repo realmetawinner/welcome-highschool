@@ -349,17 +349,21 @@
         }
 
         function validateSystem() {
-            // 성공 조건: 스피커(1), 백열등(2), 스크린(5), 커튼(6)이 모두 ON
-            const s1 = document.getElementById('sw-1').checked; // 스피커
-            const s2 = document.getElementById('sw-2').checked; // 백열등
-            const s5 = document.getElementById('sw-5').checked; // 스크린
-            const s6 = document.getElementById('sw-6').checked; // 커튼
+            // 메인 차단기 상태 확인
+            const mainOn = mainSw.checked;
             
-            // 나머지(전광판, 에어컨)는 OFF 상태여야 함
-            const othersOff = !document.getElementById('sw-3').checked && 
-                              !document.getElementById('sw-4').checked;
+            // 지정된 4개 스위치 상태 확인
+            const speaker = document.getElementById('sw-1').checked; // 스피커 (ON 이어야 함)
+            const light = document.getElementById('sw-2').checked;   // 백열등 (ON 이어야 함)
+            const screen = document.getElementById('sw-5').checked;  // 스크린 (ON 이어야 함)
+            const curtain = document.getElementById('sw-6').checked; // 커튼 (ON 이어야 함)
+            
+            // 제외되어야 할 스위치 상태 확인
+            const displaySw = document.getElementById('sw-3').checked; // 전광판 (OFF 이어야 함)
+            const ac = document.getElementById('sw-4').checked;        // 에어컨 (OFF 이어야 함)
 
-            if(s1 && s2 && s5 && s6 && othersOff) {
+            // 정확한 조건 체크: 메인ON && 스피커ON && 백열등ON && 스크린ON && 커튼ON && 전광판OFF && 에어컨OFF
+            if(mainOn && speaker && light && screen && curtain && !displaySw && !ac) {
                 displayText.innerText = "SUCCESS";
                 displayText.style.color = "#4cd964";
                 statusMsg.innerText = "시스템 가동 승인. 이동합니다.";
