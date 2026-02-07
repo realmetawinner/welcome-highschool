@@ -172,8 +172,8 @@
   </div>
 
   <script>
-    // 이동할 페이지 주소 설정
-    const targetUrl = 'https://github.com/realmetawinner/welcome-highschool/story10.html';
+    // GitHub Pages 서비스용 주소로 수정 (정상적인 웹페이지 호출 방식)
+    const targetUrl = 'https://realmetawinner.github.io/welcome-highschool/story10.html';
     const correctCode = [1, 2, 5];
     const buttons = document.querySelectorAll('.digit');
     const overlay = document.getElementById('messageOverlay');
@@ -190,7 +190,6 @@
       const input = Array.from(buttons).map(btn => parseInt(btn.innerText));
       
       if (JSON.stringify(input) === JSON.stringify(correctCode)) {
-        // 현재 창에서 페이지 전환
         window.location.href = targetUrl;
       } else {
         showMessage('❌ 비밀번호가 틀렸습니다.');
