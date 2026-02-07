@@ -22,7 +22,7 @@
       justify-content: flex-start;
       min-height: 100vh;
       margin: 0;
-      padding: 0; /* 이미지부터 시작하도록 패딩 제거 */
+      padding: 0;
       box-sizing: border-box;
     }
 
@@ -33,7 +33,6 @@
       background: white;
     }
 
-    /* 이미지 스타일: 프레임 없이 반응형으로 설정 */
     .header-image {
       width: 100%;
       height: auto;
@@ -41,7 +40,6 @@
       border: none;
     }
 
-    /* 이미지 사이 간격이나 하단 여백 조절 */
     .image-group {
       margin-bottom: 30px;
     }
@@ -105,7 +103,6 @@
       background-color: #555;
     }
 
-    /* 커스텀 메시지 박스 스타일 */
     #messageOverlay {
       position: fixed;
       top: 0;
@@ -151,7 +148,6 @@
 <body>
 
   <div class="container">
-    <!-- 이미지 그룹 -->
     <div class="image-group">
       <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story9_1.png" alt="Story Image 1" class="header-image" onerror="this.style.display='none'">
       <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story9_2.png" alt="Story Image 2" class="header-image" onerror="this.style.display='none'">
@@ -176,8 +172,9 @@
   </div>
 
   <script>
-    const correctCode = [1, 2, 5];
+    // 이동할 페이지 주소 설정
     const targetUrl = 'https://github.com/realmetawinner/welcome-highschool/story10.html';
+    const correctCode = [1, 2, 5];
     const buttons = document.querySelectorAll('.digit');
     const overlay = document.getElementById('messageOverlay');
 
@@ -193,6 +190,7 @@
       const input = Array.from(buttons).map(btn => parseInt(btn.innerText));
       
       if (JSON.stringify(input) === JSON.stringify(correctCode)) {
+        // 현재 창에서 페이지 전환
         window.location.href = targetUrl;
       } else {
         showMessage('❌ 비밀번호가 틀렸습니다.');
