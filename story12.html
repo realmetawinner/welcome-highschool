@@ -7,53 +7,61 @@
     <!-- 모바일 드래그 앤 드롭 지원 폴리필 -->
     <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
     <style>
+      /* 전체 초기화 및 스크롤 최적화 */
       * {
         box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
       }
       
       html, body {
         margin: 0;
         padding: 0;
         width: 100%;
-        /* 페이지 전체에서 세로 스크롤은 허용하되 가로 스크롤은 방지 */
+        /* 세로 스크롤은 브라우저 기본 동작(pan-y)을 따르도록 강제 */
         overflow-x: hidden;
-        background-color: #f8f9fa;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100%;
+        background-color: transparent;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
       }
 
       body {
         display: flex;
         flex-direction: column;
         align-items: center;
-        /* 기본적으로 세로 스크롤(pan-y)을 허용 */
-        touch-action: pan-y;
       }
-      
-      /* 상단 스토리 이미지 프레임 (이 영역은 스크롤이 아주 잘 되어야 함) */
+
+      /* 이미지 프레임: 스크롤이 가장 잘 되어야 하는 영역 */
       #intro-images-container {
         width: 100%;
         max-width: 480px;
         line-height: 0;
-        background-color: #fff;
-        /* 터치 시 스크롤이 즉시 작동하도록 설정 */
-        touch-action: pan-y;
+        /* 이 영역 터치 시 스크롤이 즉시 작동하도록 설정 */
+        touch-action: pan-y !important;
+        position: relative;
+        z-index: 1;
       }
       
       #intro-images-container img {
         width: 100%;
         height: auto;
         display: block;
+        /* 이미지가 터치 이벤트를 흡수하지 않고 컨테이너로 넘기도록 설정 */
+        pointer-events: none; 
+        -webkit-user-drag: none;
       }
 
       #game-wrapper {
         width: 100%;
         max-width: 480px;
-        padding: 20px 15px 50px 15px;
+        padding: 10px 15px 60px 15px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        /* 게임 영역 배경도 스크롤 허용 */
-        touch-action: pan-y;
+        touch-action: pan-y !important;
       }
 
       /* 퍼즐 판 */
@@ -69,35 +77,35 @@
         background-color: #ddd;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-        /* 판 위에서도 빈 공간 드래그 시 스크롤 가능하게 함 */
-        touch-action: pan-y;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        /* 판 위 빈 공간에서도 스크롤 허용 */
+        touch-action: pan-y !important;
       }
 
       .puzzle-slot {
         border: 1px dashed #bbb;
         position: relative;
-        overflow: hidden;
-        background-color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.5);
       }
 
-      /* 퍼즐 조각 (실제 드래그되는 요소) */
+      /* 퍼즐 조각 스타일 */
       .puzzle-piece {
-        width: calc((100% - 3 * 8px) / 4);
+        width: calc((100% - 3 * 10px) / 4);
         aspect-ratio: 1 / 1;
         background-image: url('https://i.imgur.com/r4ORRmx.png');
         background-size: 400% 200%;
         cursor: grab;
         position: relative;
         z-index: 10;
-        flex-shrink: 0;
         border-radius: 6px;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-        /* 중요: 조각을 잡았을 때는 화면이 스크롤되지 않고 조각이 움직여야 함 */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        /* 중요: 조각 자체를 잡았을 때만 스크롤을 막고 드래그를 실행 */
         touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
       }
 
-      /* 슬롯 안에 들어간 퍼즐 조각 스타일 */
+      /* 슬롯 내 고정 상태 */
       .puzzle-slot .puzzle-piece {
         position: absolute;
         top: 0;
@@ -113,50 +121,42 @@
         flex-wrap: wrap;
         justify-content: center;
         gap: 10px;
-        margin-top: 30px;
-        min-height: 130px;
+        margin-top: 20px;
+        min-height: 140px;
         width: 100%;
         padding: 15px;
-        background: #ffffff;
+        background: #fff;
         border-radius: 15px;
-        border: 2px solid #eee;
+        border: 1px solid #eee;
         align-content: flex-start;
-        /* 조각 사이 공간 터치 시 스크롤 허용 */
-        touch-action: pan-y;
+        touch-action: pan-y !important;
       }
 
-      /* 결과 확인 및 다음 단계 버튼 */
       #check-button {
         display: none;
-        margin-top: 25px;
+        margin-top: 20px;
         width: 100%;
         padding: 18px;
-        font-size: 20px;
+        font-size: 18px;
         font-weight: bold;
         background: #2ecc71;
         color: white;
         border: none;
         border-radius: 10px;
+        box-shadow: 0 4px 0 #27ae60;
         cursor: pointer;
-        box-shadow: 0 5px 0 #27ae60;
-        transition: all 0.1s;
-      }
-      
-      #check-button:active {
-        transform: translateY(3px);
-        box-shadow: 0 2px 0 #27ae60;
+        touch-action: manipulation;
       }
 
       #reset-button {
         margin-top: 20px;
         padding: 10px 20px;
-        font-size: 15px;
-        background: #e74c3c;
+        font-size: 14px;
+        background: #95a5a6;
         color: white;
         border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 500;
+        border-radius: 6px;
+        touch-action: manipulation;
       }
 
       #instruction {
@@ -164,18 +164,26 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 17px;
-        color: #777;
-        text-align: center;
-        width: 100%;
+        font-size: 15px;
+        color: #888;
         pointer-events: none;
         z-index: 5;
+        text-align: center;
+        width: 100%;
+      }
+
+      /* 안내 텍스트 */
+      .scroll-guide {
+        font-size: 12px;
+        color: #ff5e5e;
+        margin-bottom: 10px;
         font-weight: bold;
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <!-- 상단 스토리 이미지 프레임 -->
+    <!-- 상단 스토리 이미지 -->
     <div id="intro-images-container">
       <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story12_1.png" alt="12-1">
       <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story12_2.png" alt="12-2">
@@ -184,15 +192,14 @@
     </div>
 
     <div id="game-wrapper">
-      <!-- 퍼즐 보드 영역 -->
+      <div class="scroll-guide">↕ 화면 이동 시 이미지 영역을 밀어주세요.</div>
+      
       <div id="puzzle-board">
-        <div id="instruction">🧩 조각을 드래그하여 맞추세요</div>
+        <div id="instruction">🧩 조각을 여기에 맞추세요</div>
       </div>
       
-      <!-- 성공 시 나타나는 버튼 -->
       <button id="check-button" onclick="goToNextStep()">전자피아노 회로 획득</button>
       
-      <!-- 섞여있는 조각들 보관함 -->
       <div id="piece-container"></div>
       
       <button id="reset-button" onclick="resetPuzzle()">퍼즐 다시 섞기</button>
@@ -210,17 +217,14 @@
       let pieces = [];
       let dragged = null;
 
-      // 다음 페이지로 이동
       function goToNextStep() {
         window.location.href = targetUrl;
       }
 
-      // 배열 셔플
       function shuffle(array) {
         return array.sort(() => Math.random() - 0.5);
       }
 
-      // 조각 생성 및 배경 설정
       function createPuzzlePieces() {
         pieces = [];
         for (let i = 0; i < rows * cols; i++) {
@@ -229,18 +233,16 @@
           piece.draggable = true;
           piece.dataset.index = i;
           
-          // 배경 이미지 스프라이트 좌표 계산
           const posX = (i % cols) * (100 / (cols - 1));
           const posY = Math.floor(i / cols) * 100;
           piece.style.backgroundPosition = `${posX}% ${posY}%`;
           
-          piece.addEventListener('dragstart', dragStart);
+          piece.addEventListener('dragstart', (e) => { dragged = e.target; });
           pieces.push(piece);
         }
         shuffle(pieces);
       }
 
-      // 화면에 퍼즐 렌더링
       function renderPuzzle() {
         board.querySelectorAll('.puzzle-slot').forEach(slot => slot.remove());
         container.innerHTML = '';
@@ -251,60 +253,37 @@
           const slot = document.createElement('div');
           slot.className = 'puzzle-slot';
           slot.dataset.index = i;
-          slot.addEventListener('dragover', dragOver);
-          slot.addEventListener('drop', drop);
+          slot.addEventListener('dragover', (e) => e.preventDefault());
+          slot.addEventListener('drop', handleDrop);
           board.appendChild(slot);
         }
 
-        pieces.forEach(piece => {
-          container.appendChild(piece);
-        });
+        pieces.forEach(p => container.appendChild(p));
       }
 
-      function dragStart(e) {
-        dragged = e.target;
-      }
-
-      function dragOver(e) {
-        e.preventDefault();
-      }
-
-      function drop(e) {
-        let targetSlot = e.target;
-        
-        // 조각 위에 드롭했을 때 부모 슬롯을 찾아감
-        if (!targetSlot.classList.contains('puzzle-slot')) {
-          targetSlot = targetSlot.closest('.puzzle-slot');
-        }
-
-        if (targetSlot && targetSlot.classList.contains('puzzle-slot') && targetSlot.children.length === 0) {
-          targetSlot.appendChild(dragged);
+      function handleDrop(e) {
+        let slot = e.target.classList.contains('puzzle-slot') ? e.target : e.target.closest('.puzzle-slot');
+        if (slot && slot.children.length === 0) {
+          slot.appendChild(dragged);
           checkComplete();
         }
       }
 
-      // 완성 여부 확인
       function checkComplete() {
         const slots = document.querySelectorAll('.puzzle-slot');
-        let filledCount = 0;
-        let correctCount = 0;
+        let filled = 0, correct = 0;
 
         slots.forEach(slot => {
           if (slot.children.length > 0) {
-            filledCount++;
-            const piece = slot.children[0];
-            if (piece.dataset.index == slot.dataset.index) {
-              correctCount++;
-            }
+            filled++;
+            if (slot.children[0].dataset.index == slot.dataset.index) correct++;
           }
         });
 
-        if (filledCount > 0) instruction.style.display = 'none';
-
-        // 모든 조각이 정확한 위치에 있을 때 버튼 노출
-        if (correctCount === rows * cols) {
+        if (filled > 0) instruction.style.display = 'none';
+        if (correct === rows * cols) {
           checkButton.style.display = 'block';
-          checkButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          checkButton.scrollIntoView({ behavior: 'smooth' });
         } else {
           checkButton.style.display = 'none';
         }
@@ -315,7 +294,6 @@
         renderPuzzle();
       }
 
-      // 초기화 실행
       createPuzzlePieces();
       renderPuzzle();
     </script>
