@@ -16,7 +16,8 @@
         flex-direction: column;
         align-items: center;
         background-color: #f8f9fa;
-        touch-action: manipulation;
+        /* 수정: 전체 터치 조작 대신 세로 스크롤을 기본적으로 허용합니다. */
+        touch-action: pan-y;
       }
       
       /* 상단 스토리 이미지 영역 */
@@ -94,6 +95,8 @@
         flex-shrink: 0;
         border-radius: 4px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        /* 추가: 퍼즐 조각을 잡고 움직일 때는 화면이 스크롤되지 않도록 고정합니다. */
+        touch-action: none;
       }
       .puzzle-piece:active {
         cursor: grabbing;
