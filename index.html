@@ -1,1 +1,88 @@
-.
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웰컴 고등학교 - Welcome Highschool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .mobile-container {
+            width: 100%;
+            max-width: 480px; /* Mobile-optimized width */
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .image-content {
+            width: 100%;
+            line-height: 0; /* Removes tiny gaps between images */
+        }
+        .responsive-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        /* Adjusted button container: removed border-top */
+        .button-container {
+            padding: 2rem 1.5rem 4rem 1.5rem; 
+            text-align: center;
+            background: white;
+            /* border-top: 1px solid #f1f5f9; <- Removed this line */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Image Section -->
+        <div class="image-content">
+            <img 
+                src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/index_1.png" 
+                alt="Main Image 1" 
+                class="responsive-img"
+                onerror="this.src='https://via.placeholder.com/480x600?text=Image+1+Not+Found'"
+            >
+            <img 
+                src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/index_2.png" 
+                alt="Main Image 2" 
+                class="responsive-img"
+                onerror="this.src='https://via.placeholder.com/480x600?text=Image+2+Not+Found'"
+            >
+        </div>
+
+        <!-- Button Section: Located at the bottom of the scroll -->
+        <div class="button-container">
+            <button 
+                id="btn-navigate"
+                class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition duration-200 active:scale-95 text-lg"
+            >
+                체험하러가기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navigateBtn = document.getElementById('btn-navigate');
+            const targetUrl = 'https://github.com/realmetawinner/welcome-highschool/main.html';
+
+            if (navigateBtn) {
+                navigateBtn.addEventListener('click', () => {
+                    // Navigate to the specified URL
+                    window.location.href = targetUrl;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
