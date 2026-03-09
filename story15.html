@@ -1,1 +1,67 @@
-15
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 이미지 레이아웃 설정 */
+        .full-width-images {
+            width: 100%;
+            max-width: 800px; /* 가독성을 위해 최대 너비 제한 (선택 사항) */
+            margin: 0 auto;   /* 중앙 정렬 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .full-width-images img {
+            width: 100%;
+            height: auto;
+            display: block;   /* 이미지 사이 미세 공백 제거 */
+        }
+
+        /* 버튼 컨테이너 및 스타일 */
+        .button-container {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9; /* 하단 배경색 (선택 사항) */
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #007bff; /* 버튼 색상 */
+            text-decoration: none;
+            border-radius: 30px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 버튼 호버 효과 */
+        .cta-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="full-width-images">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story15_1.png" alt="이미지1">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story15_2.png" alt="이미지2">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story15_3.png" alt="이미지3">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story15_4.png" alt="이미지4">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story15_5.png" alt="이미지5">
+        <img src="https://raw.githubusercontent.com/realmetawinner/welcome-highschool/main/images/story15_6.png" alt="이미지6">
+        
+        <div class="button-container">
+            <a href="https://realmetawinner.github.io/welcome-highschool/ending.html" class="cta-button">
+                입학자료 보러가기
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
